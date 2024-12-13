@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<form method="POST" class="mt-5">
+    <div class="mb-3">
+        <label for="goal_type" class="form-label">Tipo de Meta</label>
+        <select name="goal_type" class="form-control" required>
+            <option value="weekly">Semanal</option>
+            <option value="monthly">Mensal</option>
+            <option value="quarterly">Trimestral</option>
+            <option value="semiannual">Semestral</option>
+            <option value="annual">Anual</option>
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label for="likes_goal" class="form-label">Meta de Likes</label>
+        <input type="number" name="likes_goal" class="form-control" required>
+    </div>
+
+    <div class="mb-3">
+        <label for="comments_goal" class="form-label">Meta de Comentários</label>
+        <input type="number" name="comments_goal" class="form-control" required>
+    </div>
+
+    <div class="mb-3">
+        <label for="shares_goal" class="form-label">Meta de Compartilhamentos</label>
+        <input type="number" name="shares_goal" class="form-control" required>
+    </div>
+
+    <div class="mb-3">
+        <label for="followers_goal" class="form-label">Meta de Seguidores</label>
+        <input type="number" name="followers_goal" class="form-control" required>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Definir Meta</button>
+</form>
+
+
+
+{% endblock %}

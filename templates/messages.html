@@ -36,6 +36,119 @@
     </div>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const socket = io();
+    const senderItems = document.querySelectorAll('.sender-item');
+    const chatArea = document.querySelector('.chat-area');
+    const chatMessages = document.getElementById('chat-messages');
+    const replyForm = document.getElementById('reply-form');
+    const recipientIdInput = document.getElementById('recipient-id');
+    const selectedSender = document.getElementById('selected-sender');
+    const closeChatButton = document.getElementById('close-chat');
+    const loadingSpinner = document.getElementById('loading-spinner');
+    let currentSenderId = null;
+
+    // Seleciona conversa
+    senderItems.forEach(item => {
+        item.addEventListener('click', () => {
+            const senderId = item.getAttribute('data-sender-id');
+            const senderName = item.querySelector('.sender-name').textContent;
+
+            selectedSender.textContent = senderName;
+            chatArea.classList.remove('hidden');
+            recipientIdInput.value = senderId;
+            currentSenderId = senderId;
+
+            chatMessages.innerHTML = '';
+            fetchMessages(senderId);
+        });
+    });
+
+    // Busca mensagens antigas
+    function fetchMessages(senderId) {
+        loadingSpinner.classList.remove('hidden');
+
+        fetch(`/get_full_conversation?sender_id=${senderId}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Erro ao buscar mensagens.');
+                }
+                return response.json();
+            })
+            .then(data => {
+                renderMessages(data.messages);
+            })
+            .catch(error => {
+                console.error('Erro ao buscar mensagens:', error);
+                alert('Não foi possível carregar as mensagens. Tente novamente mais tarde.');
+            })
+            .finally(() => {
+                loadingSpinner.classList.add('hidden');
+            });
+    }
+
+    // Renderiza mensagens
+    function renderMessages(messages) {
+        chatMessages.innerHTML = '';
+        messages.forEach(message => {
+            appendMessage(message.text, message.type);
+        });
+    }
+
+    // Adiciona mensagem ao DOM
+    function appendMessage(text, type) {
+        const messageDiv = document.createElement('div');
+        messageDiv.classList.add('message', type);
+        if (type === 'outgoing') {
+            messageDiv.classList.add('sent');
+        } else if (type === 'incoming') {
+            messageDiv.classList.add('received');
+        }
+        messageDiv.textContent = text;
+        chatMessages.appendChild(messageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    // Fecha o chat
+    closeChatButton.addEventListener('click', () => {
+        chatArea.classList.add('hidden');
+        currentSenderId = null;
+    });
+
+    // Envia mensagem
+    replyForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const formData = new FormData(replyForm);
+        const messageText = formData.get('message_text');
+
+        appendMessage(messageText, 'outgoing'); // Exibe mensagem localmente
+        replyForm.reset(); // Limpa o campo de texto imediatamente
+
+        fetch('/reply_message', {
+            method: 'POST',
+            body: formData
+        })
+
+    });
+
+    // Recebe mensagens em tempo real
+    socket.on('new_message', (data) => {
+        if (data.conversation_id === currentSenderId) {
+            appendMessage(data.message.text, 'incoming');
+        } else {
+            const senderItem = document.querySelector(`.sender-item[data-sender-id="${data.conversation_id}"]`);
+            if (senderItem) {
+                const unreadIndicator = senderItem.querySelector('.unread-indicator');
+                unreadIndicator.classList.remove('hidden');
+            }
+        }
+    });
+});
+</script>
+
+
 
 <style>
     body {
@@ -334,96 +447,7 @@
 </style>
 
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
-<script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    const socket = io(); // Inicializa o Socket.IO
-    const senderItems = document.querySelectorAll('.sender-item');
-    const chatArea = document.querySelector('.chat-area');
-    const chatMessages = document.getElementById('chat-messages');
-    const replyForm = document.getElementById('reply-form');
-    const recipientIdInput = document.getElementById('recipient-id');
-    const selectedSender = document.getElementById('selected-sender');
-    const closeChatButton = document.getElementById('close-chat');
-    let currentSenderId = null;
-
-    // Seleciona conversa
-    senderItems.forEach(item => {
-        item.addEventListener('click', () => {
-            const senderId = item.getAttribute('data-sender-id');
-            const senderName = item.querySelector('.sender-name').textContent;
-
-            selectedSender.textContent = senderName;
-            chatArea.classList.remove('hidden');
-            recipientIdInput.value = senderId;
-            currentSenderId = senderId;
-
-            chatMessages.innerHTML = '';
-            fetchMessages(senderId); // Carrega mensagens antigas
-        });
-    });
-
-    // Busca mensagens antigas
-    function fetchMessages(senderId) {
-        fetch(`/get_full_conversation?sender_id=${senderId}`)
-            .then(response => response.json())
-            .then(data => {
-                renderMessages(data.messages);
-            })
-            .catch(error => console.error('Erro ao buscar mensagens:', error));
-    }
-
-    // Renderiza mensagens
-    function renderMessages(messages) {
-        chatMessages.innerHTML = '';
-        messages.forEach(message => {
-            appendMessage(message.text, message.type);
-        });
-    }
-
-    // Adiciona mensagem ao DOM
-    function appendMessage(text, type) {
-        const messageDiv = document.createElement('div');
-        messageDiv.classList.add('message', type);
-        messageDiv.textContent = text;
-        chatMessages.appendChild(messageDiv);
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-    }
-
-    // Fecha o chat
-    closeChatButton.addEventListener('click', () => {
-        chatArea.classList.add('hidden');
-        currentSenderId = null;
-    });
-
-    // Envia mensagem
-    replyForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const formData = new FormData(replyForm);
-        const messageText = formData.get('message_text');
-
-        replyForm.reset(); // Limpa o campo de texto imediatamente
-
-        fetch('/reply_message', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
 
 
-    });
 
-    // Recebe mensagens em tempo real
-    socket.on('new_message', (data) => {
-        if (data.conversation_id === currentSenderId) {
-            appendMessage(data.message.text, data.message.type);
-        }
-    });
-});
-</script>
-
-
-</script>
 {% endblock %}

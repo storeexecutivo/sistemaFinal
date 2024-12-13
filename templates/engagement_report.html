@@ -31,63 +31,88 @@ button#downloadPDF:hover {
 }
 
 </style>
+
+
 <div class="container py-5 mt-5">
+
+
     <!-- Título Principal -->
     <div class="text-center mb-5">
         <h1 class="fw-bold">Resumo de Engajamento</h1>
-        <p class="text-muted">Veja os principais dados de engajamento dos últimos 30 dias.</p>
+
+    <!-- Formulário para selecionar o tipo de meta -->
+    <form method="get" action="{{ url_for('engagement_report') }}">
+        <div class="form-group">
+            <label for="goal_type">Tipo de Meta</label>
+            <select id="goal_type" name="goal_type" class="form-control" onchange="this.form.submit()">
+                <option value="weekly" {% if selected_goal_type == 'weekly' %}selected{% endif %}>Semanal</option>
+                <option value="monthly" {% if selected_goal_type == 'monthly' %}selected{% endif %}>Mensal</option>
+                <option value="quarterly" {% if selected_goal_type == 'quarterly' %}selected{% endif %}>Trimestral</option>
+                <option value="semiannual" {% if selected_goal_type == 'semiannual' %}selected{% endif %}>Semestral</option>
+                <option value="annual" {% if selected_goal_type == 'annual' %}selected{% endif %}>Anual</option>
+            </select>
+        </div>
+    </form>
+
+
+
     </div>
 
     <!-- Estatísticas -->
-    <div class="row g-4">
-        <!-- Card: Novos Seguidores -->
-        <div class="col-md-3">
-            <div class="card stat-card text-center shadow-sm">
-                <div class="card-body">
-                    <i class="fas fa-user-plus fa-3x text-primary mb-3"></i>
-                    <h5 class="card-title">Novos Seguidores</h5>
-                    <p>Facebook: <strong>{{ new_facebook_followers }}</strong></p>
-                    <p>Instagram: <strong>{{ new_instagram_followers }}</strong></p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Card: Novos Likes -->
-        <div class="col-md-3">
-            <div class="card stat-card text-center shadow-sm">
-                <div class="card-body">
-                    <i class="fas fa-thumbs-up fa-3x text-success mb-3"></i>
-                    <h5 class="card-title">Novos Likes</h5>
-                    <p>Facebook: <strong>{{ new_facebook_likes }}</strong></p>
-                    <p>Instagram: <strong>{{ new_instagram_likes }}</strong></p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Card: Novos Comentários -->
-        <div class="col-md-3">
-            <div class="card stat-card text-center shadow-sm">
-                <div class="card-body">
-                    <i class="fas fa-comments fa-3x text-danger mb-3"></i>
-                    <h5 class="card-title">Novos Comentários</h5>
-                    <p>Facebook: <strong>{{ new_facebook_comments }}</strong></p>
-                    <p>Instagram: <strong>{{ new_instagram_comments }}</strong></p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Card: Novos Compartilhamentos -->
-        <div class="col-md-3">
-            <div class="card stat-card text-center shadow-sm">
-                <div class="card-body">
-                    <i class="fas fa-share fa-3x text-warning mb-3"></i>
-                    <h5 class="card-title">Compartilhamentos</h5>
-                    <p>Facebook: <strong>{{ new_facebook_shares }}</strong></p>
-                    <p>Instagram: <strong>{{ new_instagram_shares }} (N/A)</strong></p>
-                </div>
+   <div class="row g-4">
+    <!-- Card: Novos Seguidores -->
+    <div class="col-md-3">
+        <div class="card stat-card text-center shadow-sm">
+            <div class="card-body">
+                <i class="fas fa-user-plus fa-3x text-primary mb-3"></i>
+                <h5 class="card-title">Novos Seguidores</h5>
+                <p>Facebook: <strong>{{ new_facebook_followers }}</strong></p>
+                <p>Instagram: <strong>{{ new_instagram_followers }}</strong></p>
+                <p class="text-muted">Alcançado: <strong>{{ new_facebook_followers_percentage }}%</strong></p>
             </div>
         </div>
     </div>
+
+    <!-- Card: Novos Likes -->
+    <div class="col-md-3">
+        <div class="card stat-card text-center shadow-sm">
+            <div class="card-body">
+                <i class="fas fa-thumbs-up fa-3x text-success mb-3"></i>
+                <h5 class="card-title">Novos Likes</h5>
+                <p>Facebook: <strong>{{ new_facebook_likes }}</strong></p>
+                <p>Instagram: <strong>{{ new_instagram_likes }}</strong></p>
+                <p class="text-muted">Alcançado: <strong>{{ new_facebook_likes_percentage }}%</strong></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Card: Novos Comentários -->
+    <div class="col-md-3">
+        <div class="card stat-card text-center shadow-sm">
+            <div class="card-body">
+                <i class="fas fa-comments fa-3x text-danger mb-3"></i>
+                <h5 class="card-title">Novos Comentários</h5>
+                <p>Facebook: <strong>{{ new_facebook_comments }}</strong></p>
+                <p>Instagram: <strong>{{ new_instagram_comments }}</strong></p>
+                <p class="text-muted">Alcançado: <strong>{{ new_facebook_comments_percentage }}%</strong></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Card: Novos Compartilhamentos -->
+    <div class="col-md-3">
+        <div class="card stat-card text-center shadow-sm">
+            <div class="card-body">
+                <i class="fas fa-share fa-3x text-warning mb-3"></i>
+                <h5 class="card-title">Compartilhamentos</h5>
+                <p>Facebook: <strong>{{ new_facebook_shares }}</strong></p>
+                <p>Instagram: <strong>{{ new_instagram_shares }} (N/A)</strong></p>
+                <p class="text-muted">Alcançado: <strong>{{ new_facebook_shares_percentage }}%</strong></p>
+            </div>
+        </div>
+    </div>
+</div>
+
 
     <!-- Gráficos -->
     <div class="mt-5 p-4 bg-light rounded shadow-sm">

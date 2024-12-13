@@ -67,7 +67,7 @@ def login_required(f):
 UPLOAD_FOLDER = 'static/uploads'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 # Configurações do Flask e SQLAlchemy
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///facebook_posts.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///posts.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
@@ -93,6 +93,20 @@ PAGE_ID = '111771022018850'
 ACCESS_TOKEN = "EAA6jGHZB8lvkBO6ceww9bZBaXVpjM43P1YVKUtmZBvby0KTi9NQYVcZCqrwX30twZC98vjFCNpXuiC6mznLnv8bpYEdf9NxziXXOuZBTYBtvlXOM8UKpOzRD6xelZA5roKjACekbZALaaZC6sZCZByk4jxBR6JBVkjtPn581aOHeJZBEGRTpbsGZCt1c5vZByzZAZAa50ZC0ZD"
 #ACCESS_TOKEN = "EAA6jGHZB8lvkBO884CZCJgKehFbpVL6x0SbHgBrUZBGzoLZBkZA2Jc11I3VZBknyZBFMkPExvD4YToJnDZBOl6VKqTYNzEYvr8gnZCK98c3GZCtELK1R2zOeVJz6TdNqb7dYUDwMZCRwctsxgbd0RvmrMuSgXkG1s47EqrWkRjZAHIMWwIL5yghd9WuL4QiKnobwG0BqhJcZD"
 graph = fb.GraphAPI(ACCESS_TOKEN)
+
+
+
+class Goal(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    goal_type = db.Column(db.String(20), nullable=False)  # 'weekly', 'monthly', etc.
+    period_start = db.Column(db.Date, nullable=False)
+    period_end = db.Column(db.Date, nullable=False)
+    likes_goal = db.Column(db.Integer, nullable=False, default=0)
+    comments_goal = db.Column(db.Integer, nullable=False, default=0)
+    shares_goal = db.Column(db.Integer, nullable=False, default=0)
+    followers_goal = db.Column(db.Integer, nullable=False, default=0)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 
 # Modelo de Dados
@@ -168,6 +182,11 @@ class UserLog(db.Model):
 
     def __repr__(self):
         return f'<UserLog {self.action} by {self.user.nome} at {self.timestamp}>'
+
+class FAQ(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    question = db.Column(db.String(255), nullable=False, unique=True)
+    answer = db.Column(db.String(1024), nullable=False)
 
 
 def registrar_log(user_id, action, details=None):
@@ -294,6 +313,7 @@ def post_scheduled_posts():
 
 # Executa a função a cada minuto
 scheduler.add_job(post_scheduled_posts, 'interval', minutes=1)
+
 
 
 @app.route('/logs', methods=['GET'])
@@ -699,10 +719,28 @@ def cancel_post(post_id):
         flash("Erro ao cancelar o post. Tente novamente.", "danger")
         return redirect(url_for('scheduled_posts'))
 
+def calculate_percentage(current, goal):
+    if goal > 0:
+        return round((current / goal) * 100, 2)
+    return 0
 
 @app.route('/engagement_report')
 @login_required
 def engagement_report():
+    now = datetime.now().date()
+
+    # Captura o tipo de meta do formulário (valor padrão é 'weekly')
+    selected_goal_type = request.args.get('goal_type', 'weekly')
+
+    # Verificar se metas foram definidas para a semana atual
+    current_week_start = now - timedelta(days=now.weekday())
+    current_goal = Goal.query.filter(
+        Goal.period_start == current_week_start,
+        Goal.user_id == current_user.id,
+        Goal.goal_type == selected_goal_type
+    ).first()
+
+
     try:
         # Buscar os 5 posts mais curtidos
         posts = Post.query.order_by(Post.likes.desc()).limit(5).all()
@@ -885,7 +923,8 @@ def engagement_report():
         instagram_comments_data = []
 
         # Calcula a data mínima (5 dias atrás)
-        min_date = (datetime.now() - timedelta(minutes=30)).date()
+
+        min_date = (datetime.now() - timedelta(days=30)).date()
 
         try:
             # Facebook - Likes e Comentários
@@ -963,6 +1002,8 @@ def engagement_report():
 
         return render_template(
             'engagement_report.html',
+            current_goal=current_goal,
+            selected_goal_type=selected_goal_type,
             total_likes_instagram=total_likes_instagram,
             total_likes_facebook=total_likes_facebook,
             total_likes=total_likes_facebook + total_likes_instagram,
@@ -991,6 +1032,10 @@ def engagement_report():
             total_commentss=instagram_comments + facebook_comments,
             total_sharess=facebook_shares + instagram_shares,
             facebook_shares=facebook_shares,
+            new_facebook_followers_percentage=calculate_percentage(new_facebook_followers, current_goal.followers_goal),
+        new_facebook_likes_percentage = calculate_percentage(new_facebook_likes, current_goal.likes_goal),
+        new_facebook_comments_percentage = calculate_percentage(new_facebook_comments, current_goal.comments_goal),
+        new_facebook_shares_percentage = calculate_percentage(new_facebook_shares, current_goal.shares_goal),
             instagram_shares=instagram_shares
         )
 
@@ -1486,6 +1531,15 @@ def post_to_both():
                 instagram_response = post_to_instagram_api(image_url, caption)
                 if instagram_response.get("id"):
                     success_messages.append("Postagem no Instagram bem-sucedida!")
+                    # Salvar no banco de dados
+                    new_post = Post(
+                        post_id=instagram_response["id"],
+                        name=post_name,
+                        likes=0,
+                        comments=0,
+                        shares=0
+                    )
+                    db.session.add(new_post)
                 else:
                     error_messages.append(f"Instagram: {instagram_response.get('details', 'Erro desconhecido')}")
 
@@ -1496,13 +1550,31 @@ def post_to_both():
                         facebook_response = graph.put_photo(image, message=caption)
                         if facebook_response.get("post_id"):
                             success_messages.append("Postagem no Facebook bem-sucedida!")
+                            # Salvar no banco de dados
+                            new_post = Post(
+                                post_id=facebook_response["post_id"],
+                                name=post_name,
+                                likes=0,
+                                comments=0,
+                                shares=0
+                            )
+                            db.session.add(new_post)
                         else:
                             error_messages.append("Facebook: Erro ao publicar.")
                 except Exception as e:
                     error_messages.append(f"Facebook: {str(e)}")
 
+            # Confirmar as alterações no banco de dados
+            try:
+                db.session.commit()
+            except Exception as e:
+                db.session.rollback()
+                error_messages.append(f"Erro ao salvar no banco de dados: {str(e)}")
+
+            # Limpar arquivo temporário
             os.remove(filepath)
 
+            # Mensagens de feedback
             for msg in success_messages:
                 flash(msg, "success")
             for msg in error_messages:
@@ -1516,6 +1588,8 @@ def post_to_both():
     except Exception as e:
         flash(f"Ocorreu um erro: {str(e)}", "danger")
         return redirect(url_for('dashboard'))
+
+
 
 def post_to_instagram_api(image_url, caption):
     # Criar container de mídia
@@ -1541,6 +1615,7 @@ def post_to_instagram_api(image_url, caption):
 
     publish_response = requests.post(publish_url, data=publish_data).json()
     return publish_response
+
 
 from datetime import datetime
 import requests
@@ -1629,23 +1704,31 @@ def post_photo():
             with open(filepath, "rb") as image:
                 # Postar a foto no Facebook
                 response = graph.put_photo(image, message=message)
-                post_id = response['post_id']
+                post_id = response.get('post_id')
+
+                if not post_id:
+                    flash("Erro ao obter o ID do post do Facebook.", "danger")
+                    return redirect(url_for('dashboard'))
 
                 # Salvar nome e ID do post na base de dados
-                new_post = Post(post_id=post_id, name=post_name)
-                db.session.add(new_post)
-                db.session.commit()
-
-            os.remove(filepath)
-            flash("Foto postada com sucesso no Facebook!", "success")
-        except Exception as e:
-            flash(f"Erro ao postar a foto: {str(e)}", "danger")
+                try:
+                    new_post = Post(post_id=post_id, name=post_name)
+                    db.session.add(new_post)
+                    db.session.commit()
+                    flash("Foto postada com sucesso no Facebook!", "success")
+                except Exception as db_error:
+                    db.session.rollback()
+                    flash(f"Foto postada no Facebook, mas houve um erro ao salvar no banco de dados: {str(db_error)}", "warning")
+        except Exception as post_error:
+            flash(f"Erro ao postar a foto no Facebook: {str(post_error)}", "danger")
+        finally:
+            # Remover o arquivo temporário
             os.remove(filepath)
 
         return redirect(url_for('dashboard'))  # Substitua pela rota correta.
 
     flash("Tipo de arquivo não permitido. Envie uma imagem válida.", "danger")
-    return redirect(url_for('dashboard'))  # Substitua pela rota correta
+    return redirect(url_for('dashboard'))  # Substitua pela rota correta.
 
 # Rota para Comentar em um Post
 @app.route('/comment_post', methods=['POST'])
@@ -1790,21 +1873,62 @@ def reply_comments():
     # Redirecionar para uma página desejada
     return redirect(url_for('dashboard'))  # Substitua 'reply_page' pela rota correta.
 
+
+@app.route('/fqs')
+def fqs():
+    return render_template('fqs.html')
+
 # Define perguntas frequentes e respostas automáticas
-FAQ_ANSWERS = {
-    "qual é o horário de atendimento?": "Nosso horário de atendimento é das 9h às 18h, de segunda a sexta.",
-    "como posso entrar em contato?": "Você pode entrar em contato conosco pelo telefone 85 7959590/ 82 7786749 ou por mensagem direta.",
-    "onde vocês estão localizados?": "Estamos localizados na Rua Correia de Brito N 2156 R/C- Baixa.",
-    "Qual é o custo da entrega? É grátis para compras acima de um valor específico?" : "O custo da entrega varia conforme a localização. Os precos partem de 100MZN",
-   "Posso trocar ou devolver um produto? Qual é o prazo para isso?" : "Você pode devolver ou trocar produtos dentro de um prazo de 7 a 30 dias após o recebimento"
-}
+@app.route('/faqs', methods=['GET'])
+def get_faqs():
+    faqs = FAQ.query.all()
+    return jsonify([{"id": faq.id, "question": faq.question, "answer": faq.answer} for faq in faqs])
+
+@app.route('/faqs', methods=['POST'])
+def add_faq():
+    data = request.json
+    question = data.get('question')
+    answer = data.get('answer')
+    if not question or not answer:
+        return jsonify({"error": "Question and answer are required"}), 400
+    new_faq = FAQ(question=question, answer=answer)
+    db.session.add(new_faq)
+    db.session.commit()
+    return jsonify({"id": new_faq.id, "message": "FAQ added successfully"}), 201
+
+@app.route('/faqs/<int:faq_id>', methods=['PUT'])
+def update_faq(faq_id):
+    faq = FAQ.query.get_or_404(faq_id)
+    data = request.json
+    faq.question = data.get('question', faq.question)
+    faq.answer = data.get('answer', faq.answer)
+    db.session.commit()
+    return jsonify({"message": "FAQ updated successfully"})
+
+@app.route('/faqs/<int:faq_id>', methods=['DELETE'])
+def delete_faq(faq_id):
+    faq = FAQ.query.get_or_404(faq_id)
+    db.session.delete(faq)
+    db.session.commit()
+    return jsonify({"message": "FAQ deleted successfully"})
+
 
 def auto_reply(comment_text):
-    # Verifica se o comentário corresponde a uma pergunta frequente
-    for question, answer in FAQ_ANSWERS.items():
-        if question in comment_text.lower():
-            return answer
+    faqs = FAQ.query.all()
+    for faq in faqs:
+        if faq.question.lower() in comment_text.lower():
+            return faq.answer
     return None
+
+
+def fetch_comments_from_instagram(post_id):
+    # Busca comentários do Instagram usando Instagram Graph API
+    try:
+        instagram_comments_data = graph.get_connections(post_id, 'comments')
+        return instagram_comments_data.get('data', [])
+    except Exception as e:
+        print(f"Erro ao buscar comentários do Instagram: {e}")
+        return []
 
 
 def auto_reply_to_faqs():
@@ -1812,22 +1936,36 @@ def auto_reply_to_faqs():
         posts = Post.query.all()
         for post in posts:
             try:
-                comments_data = graph.get_connections(post.post_id, 'comments')
-                comments = comments_data['data']
-                for comment in comments:
-                    comment_id = comment['id']
+                # Facebook comments
+                fb_comments_data = graph.get_connections(post.post_id, 'comments')
+                fb_comments = fb_comments_data.get('data', [])
 
-                    # Verifica se o comentário já foi respondido
-                    if has_already_responded(comment_id):
-                        continue
+                # Instagram comments
+                ig_comments = fetch_comments_from_instagram(post.post_id)
 
-                    auto_reply_message = auto_reply(comment['message'])
-                    if auto_reply_message:
-                        graph.put_object(comment_id, "comments", message=auto_reply_message)
-                        # Marca o comentário como respondido
-                        mark_as_responded(comment_id)
+                # Process Facebook comments
+                for comment in fb_comments:
+                    process_comment(comment)
+
+                # Process Instagram comments
+                for comment in ig_comments:
+                    process_comment(comment)
             except Exception as e:
                 print(f"Erro ao responder automaticamente: {e}")
+
+
+def process_comment(comment):
+    comment_id = comment['id']
+    if has_already_responded(comment_id):
+        return
+    auto_reply_message = auto_reply(comment.get('message', ''))
+    if auto_reply_message:
+        try:
+            graph.put_object(comment_id, "comments", message=auto_reply_message)
+            mark_as_responded(comment_id)
+        except Exception as e:
+            print(f"Erro ao responder ao comentário {comment_id}: {e}")
+
 
 # Agendar a verificação e resposta automática a cada 5 minutos
 scheduler.add_job(auto_reply_to_faqs, 'interval', minutes=1)
@@ -1908,9 +2046,13 @@ def get_full_conversation():
                     "created_time": msg.get("created_time", "Desconhecido")
                 })
 
+        # Inverte a lista de mensagens antes de retorná-la
+        messages.reverse()
+
         return jsonify({"messages": messages})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 
 
 # Função para buscar mensagens
@@ -2740,6 +2882,54 @@ def get_insights():
         'instagram_account_insights': instagram_data
     })
 
+
+@app.route('/set_goal', methods=['GET', 'POST'])
+@login_required
+def set_goal():
+    if request.method == 'POST':
+        goal_type = request.form.get('goal_type')
+        likes_goal = int(request.form.get('likes_goal', 0))
+        comments_goal = int(request.form.get('comments_goal', 0))
+        shares_goal = int(request.form.get('shares_goal', 0))
+        followers_goal = int(request.form.get('followers_goal', 0))
+
+        # Calcular período com base no tipo de meta
+        now = datetime.now()
+        if goal_type == 'weekly':
+            period_start = now - timedelta(days=now.weekday())
+            period_end = period_start + timedelta(days=6)
+        elif goal_type == 'monthly':
+            period_start = now.replace(day=1)
+            next_month = now.replace(day=28) + timedelta(days=4)
+            period_end = next_month - timedelta(days=next_month.day)
+        elif goal_type == 'quarterly':
+            quarter = (now.month - 1) // 3 + 1
+            period_start = datetime(now.year, 3 * quarter - 2, 1)
+            period_end = datetime(now.year, 3 * quarter + 1, 1) - timedelta(days=1)
+        elif goal_type == 'semiannual':
+            period_start = datetime(now.year, 1 if now.month <= 6 else 7, 1)
+            period_end = datetime(now.year, 6 if now.month <= 6 else 12, 30)
+        elif goal_type == 'annual':
+            period_start = datetime(now.year, 1, 1)
+            period_end = datetime(now.year, 12, 31)
+
+        # Salvar meta no banco de dados
+        goal = Goal(
+            user_id=current_user.id,
+            goal_type=goal_type,
+            period_start=period_start,
+            period_end=period_end,
+            likes_goal=likes_goal,
+            comments_goal=comments_goal,
+            shares_goal=shares_goal,
+            followers_goal=followers_goal
+        )
+        db.session.add(goal)
+        db.session.commit()
+        flash("Meta definida com sucesso!", "success")
+        return redirect(url_for('engagement_report'))
+
+    return render_template('set_goal.html')
 
 
 if __name__ == '__main__':
