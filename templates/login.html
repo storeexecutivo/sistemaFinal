@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marketing Digital Hub - Login</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        /* Reset básico */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        .login-container {
+            width: 100%;
+            max-width: 400px;
+            padding: 2rem;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            text-align: center;
+        }
+
+        .login-header h2 {
+            font-size: 1.8rem;
+            color: #333;
+            margin-bottom: 1rem;
+        }
+
+        .login-header p {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 2rem;
+        }
+
+        .login-input {
+            width: 100%;
+            padding: 0.8rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+            font-size: 1rem;
+            transition: border 0.3s ease;
+        }
+
+        .login-input:focus {
+            outline: none;
+            border-color: #fdbb2d;
+        }
+
+        .password-container {
+            position: relative;
+        }
+
+        .toggle-password-button {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #666;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        .login-button {
+            width: 100%;
+            padding: 0.8rem;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #fdbb2d, #ff7e5f);
+            color: #fff;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .login-button:hover {
+            background: #ff7e5f;
+        }
+
+        .forgot-password {
+            display: block;
+            margin-top: 1rem;
+            font-size: 0.85rem;
+            color: #666;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .forgot-password:hover {
+            color: #fdbb2d;
+        }
+
+        .register-link {
+            margin-top: 1.5rem;
+            font-size: 0.9rem;
+        }
+
+        .register-link a {
+            color: #fdbb2d;
+            font-weight: bold;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .register-link a:hover {
+            color: #b21f1f;
+        }
+
+        /* Estilo da mensagem de erro */
+        #flash-messages {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1050;
+            width: 300px;
+        }
+
+        .alert {
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            font-size: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            animation: slideIn 0.5s ease-out, fadeOut 3s ease-out 2.5s; /* Fade-out após 2.5s */
+        }
+
+        .alert-danger {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .alert .btn-close {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            color: #721c24;
+            cursor: pointer;
+        }
+
+        .alert .btn-close:hover {
+            color: #f44336;
+        }
+
+        @keyframes slideIn {
+            0% {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+            100% {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes fadeOut {
+            0% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .login-container {
+                padding: 1.5rem;
+            }
+
+            .login-header h2 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    {% with messages = get_flashed_messages(with_categories=True) %}
+    {% if messages %}
+        <div id="flash-messages">
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+    {% endwith %}
+
+    <div class="login-container">
+        <div class="login-header">
+            <h2>Marketing Digital Hub</h2>
+            <p>Conecte-se e potencialize sua estratégia de marketing.</p>
+        </div>
+        <form method="POST" action="{{ url_for('login') }}">
+            <input type="text" name="nome" placeholder="Digite seu nome" value="{{ request.form.get('nome', '') }}" class="login-input" required>
+            <div class="password-container">
+                <input type="password" name="senha" placeholder="Digite sua senha" class="login-input" required>
+                <button type="button" class="toggle-password-button">
+                    <i class="fas fa-eye"></i>
+                </button>
+            </div>
+            <button type="submit" class="login-button">Entrar</button>
+        </form>
+        <a class="forgot-password" href="{{ url_for('esqueceu_senha') }}">Esqueceu a Senha?</a>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const passwordField = document.querySelector('input[name="senha"]');
+            const togglePasswordButton = document.querySelector('.toggle-password-button');
+
+            togglePasswordButton.addEventListener('click', () => {
+                const isPasswordVisible = passwordField.type === 'password';
+                passwordField.type = isPasswordVisible ? 'text' : 'password';
+                togglePasswordButton.innerHTML = isPasswordVisible ? '<i class="fas fa-eye-slash"></i>' : '<i class="fas fa-eye"></i>';
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,967 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    /* Estilização do Modal */
+    .modal-header {
+        border-bottom: 2px solid #007bff;
+    }
+
+    .toast {
+        animation: fadeIn 0.5s, fadeOut 0.5s 4s; /* Aparece e desaparece automaticamente */
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes fadeOut {
+        from {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        to {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+    }
+
+
+
+     .social-icon {
+        font-size: 1.5rem;
+        display: flex;
+        gap: 5px;
+    }
+
+    .modal-body {
+        background-color: #f9f9f9;
+    }
+
+    .list-group-item {
+        border: none;
+        padding: 15px;
+        background-color: #fff;
+        margin-bottom: 10px;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .list-group-item:hover {
+        background-color: #f0f8ff;
+    }
+
+    .reply-btn {
+        float: right;
+        margin-left: 10px;
+        font-size: 14px;
+        color: #007bff;
+        background-color: transparent;
+        border: none;
+        cursor: pointer;
+    }
+
+    .reply-btn:hover {
+        color: #0056b3;
+    }
+
+    #replyButton {
+        background: linear-gradient(45deg, #28a745, #218838);
+        color: #fff;
+        border: none;
+        transition: background 0.3s;
+    }
+
+    #replyButton:hover {
+        background: linear-gradient(45deg, #218838, #1c7430);
+    }
+
+    #commentList {
+        padding: 0;
+    }
+
+    #noCommentsText {
+        display: none;
+    }
+    .modal-header {
+        border-bottom: 2px solid #0d6efd;
+    }
+
+    .modal-body {
+        background-color: #f8f9fa;
+        padding: 20px;
+    }
+
+    .list-group-item {
+        border: none;
+        padding: 15px;
+        margin-bottom: 10px;
+        border-radius: 10px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        background-color: #ffffff;
+        transition: transform 0.2s;
+    }
+
+    .list-group-item:hover {
+        transform: scale(1.02);
+    }
+
+    .reply-btn {
+        float: right;
+        margin-top: 10px;
+        font-size: 14px;
+        color: #007bff;
+        background-color: transparent;
+        border: none;
+        cursor: pointer;
+    }
+
+    .reply-btn:hover {
+        color: #0056b3;
+        text-decoration: underline;
+    }
+
+    #replyMessage {
+        resize: none;
+        border-radius: 8px;
+        box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    #replyButton {
+        background: linear-gradient(45deg, #007bff, #0056b3);
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: bold;
+        padding: 10px;
+        width: 100%;
+        transition: background 0.3s ease;
+    }
+
+    #replyButton:disabled {
+        background: #d6d6d6;
+        cursor: not-allowed;
+    }
+
+    #replyButton:hover:enabled {
+        background: linear-gradient(45deg, #0056b3, #003f88);
+    }
+
+    .comment-author {
+        font-weight: bold;
+        color: #333;
+    }
+
+    .comment-time {
+        font-size: 12px;
+        color: #888;
+    }
+
+    .spinner {
+        display: none;
+        margin: auto;
+        width: 50px;
+        height: 50px;
+        border: 5px solid rgba(0, 0, 0, 0.1);
+        border-top: 5px solid #0d6efd;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    /* Estilização aprimorada */
+    .spinner {
+        margin-top: 20px;
+        display: none;
+        width: 50px;
+        height: 50px;
+        border: 5px solid rgba(0, 0, 0, 0.1);
+        border-top: 5px solid #007bff;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+
+    .list-group-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 15px;
+        border: none;
+        padding: 15px;
+        margin-bottom: 10px;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        transition: background-color 0.2s ease;
+    }
+
+    .list-group-item:hover {
+        background-color: #f0f8ff;
+    }
+
+    .comment-author {
+        font-weight: bold;
+        font-size: 14px;
+        color: #007bff;
+    }
+
+    .comment-time {
+        font-size: 12px;
+        color: #888;
+    }
+
+    .comment-text {
+        margin-top: 5px;
+        font-size: 15px;
+    }
+
+    .reply-btn {
+        margin-left: auto;
+        color: #007bff;
+        background: none;
+        border: none;
+        font-size: 14px;
+        cursor: pointer;
+    }
+
+    .reply-btn:hover {
+        text-decoration: underline;
+    }
+
+    #replyButton:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+    }
+     /* Estilo geral do modal */
+    .modal-content {
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .modal-header {
+        border-bottom: 3px solid #0056b3;
+    }
+
+    .modal-body {
+        background-color: #f9f9f9;
+    }
+
+    /* Lista de comentários */
+    .list-group-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 15px;
+        padding: 15px;
+        margin-bottom: 10px;
+        border-radius: 8px;
+        background-color: #ffffff;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .list-group-item:hover {
+        transform: scale(1.02);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    /* Avatar do autor do comentário */
+    .list-group-item img {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+    /* Informações do comentário */
+    .comment-author {
+        font-weight: bold;
+        color: #007bff;
+    }
+
+    .comment-time {
+        font-size: 12px;
+        color: #666;
+        margin-top: 2px;
+    }
+
+    .comment-text {
+        margin-top: 8px;
+        font-size: 15px;
+        color: #333;
+    }
+
+    /* Botão de resposta */
+    .reply-btn {
+        margin-left: auto;
+        font-size: 14px;
+        color: #0056b3;
+        background: none;
+        border: none;
+        cursor: pointer;
+    }
+
+    .reply-btn:hover {
+        text-decoration: underline;
+        color: #003f88;
+    }
+
+    /* Botão enviar resposta */
+    #replyButton {
+        background: linear-gradient(45deg, #007bff, #0056b3);
+        color: #fff;
+        border: none;
+        padding: 10px;
+        font-size: 16px;
+        border-radius: 8px;
+        transition: background 0.3s ease;
+    }
+
+    #replyButton:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+    }
+
+    #replyButton:hover:enabled {
+        background: linear-gradient(45deg, #0056b3, #003f88);
+    }
+    
+    @keyframes spin {
+        from {
+            transform: rotate(0deg);
+        }
+        to {
+            transform: rotate(360deg);
+        }
+    }
+</style>
+
+
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-primary"> <i class="bi bi-facebook text-primary me-1"></i>
+                                <i class="bi bi-instagram text-danger"></i> Posts</h2>
+       </div>
+<!-- Elemento para exibir mensagens de erro -->
+<div id="errorMessage" class="alert alert-danger d-none" role="alert"></div>
+
+    <!-- Container com rolagem -->
+    <div class="post-list-container" style="max-height: 600px; overflow-y: auto; padding: 15px; border: 1px solid #ddd; border-radius: 8px;">
+    {% if grouped_posts %}
+        {% for created_time, posts in grouped_posts.items() %}
+        <div class="post-group mb-4">
+            <h6 class="text-muted">Criado em: {{ created_time }}</h6>
+            <div class="row">
+                {% for post in posts %}
+                <div class="col-md-6 mb-3">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <p class="card-text">{{ post.message }}</p>
+                            <small class="text-muted">ID: {{ post.id }}</small>
+                            {% if post.media_url %}
+                            <div class="mt-3">
+                                <img src="{{ post.media_url }}" alt="Media" class="img-fluid rounded" id="postImage{{ post.id }}">
+                            </div>
+                            {% endif %}
+                            <div class="d-flex justify-content-between mt-3">
+                                <a href="https://www.{{ 'facebook.com' if post.source == 'Facebook' else 'instagram.com' }}/{{ post.id }}" target="_blank" class="btn btn-primary btn-sm">
+                                    <i class="bi bi-eye"></i> Ver na Rede
+                                </a>
+
+
+
+   {% if post.source != "Instagram" %}
+    <button class="btn btn-danger btn-sm delete-btn" data-id="{{ post.id }}" data-platform="{{ post.source }}">
+        <i class="bi bi-trash"></i> Excluir
+    </button>
+{% endif %}
+
+
+                                <!-- Botão de Edição -->
+<button class="btn btn-warning btn-sm edit-btn" data-id="{{ post.id }}" data-message="{{ post.message }}" data-platform="{{ post.source }}" data-media-url="{{ post.media_url }}" data-bs-toggle="modal" data-bs-target="#editPostModal">
+    <i class="bi bi-pencil"></i> Editar
+</button>
+
+<!-- Modal para Edição -->
+<!-- Modal para Edição -->
+<div class="modal fade" id="editPostModal" tabindex="-1" aria-labelledby="editPostModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editPostModalLabel">Editar Postagem</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editPostForm">
+                    <div class="mb-3">
+                        <label for="editMessage" class="form-label">Mensagem</label>
+                        <textarea class="form-control" id="editMessage" rows="4"></textarea>
+                    </div>
+
+
+
+                    <input type="hidden" id="editPostId">
+                    <input type="hidden" id="editPlatform">
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="saveEditBtn">Salvar Alterações</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // Preencher o modal de edição
+        document.querySelectorAll(".edit-btn").forEach(button => {
+            button.addEventListener("click", function () {
+                const postId = this.getAttribute("data-id");
+                const message = this.getAttribute("data-message");
+                const platform = this.getAttribute("data-platform");
+                const mediaUrl = this.getAttribute("data-media-url");
+
+                document.getElementById("editPostId").value = postId;
+                document.getElementById("editMessage").value = message;
+                document.getElementById("editPlatform").value = platform;
+
+                // Mostrar imagem atual, se houver
+                if (mediaUrl) {
+                    document.getElementById("currentImagePreview").src = mediaUrl;
+                    document.getElementById("currentImageContainer").style.display = "block";
+                } else {
+                    document.getElementById("currentImageContainer").style.display = "none";
+                }
+            });
+        });
+
+        // Remover imagem atual
+        document.getElementById("removeImageBtn").addEventListener("click", function () {
+            document.getElementById("currentImagePreview").src = "";
+            document.getElementById("currentImageContainer").style.display = "none";
+        });
+
+        // Salvar alterações
+        document.getElementById("saveEditBtn").addEventListener("click", function () {
+            const postId = document.getElementById("editPostId").value;
+            const newMessage = document.getElementById("editMessage").value;
+            const platform = document.getElementById("editPlatform").value;
+            const newImage = document.getElementById("editImage").files[0];
+            const currentImagePreview = document.getElementById("currentImagePreview").src;
+
+            const formData = new FormData();
+            formData.append("message", newMessage);
+            formData.append("platform", platform);
+
+            // Adicionar lógica de exclusão e atualização de imagem
+            if (newImage) {
+                formData.append("image", newImage);
+            } else if (!currentImagePreview) {
+                formData.append("remove_image", 'true'); // Indicar remoção da imagem
+            }
+
+            fetch(`/edit_post/${postId}`, {
+                method: "POST",
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert("Postagem atualizada com sucesso!");
+                        location.reload();
+                    } else {
+                        alert("Erro ao atualizar a postagem: " + data.error);
+                    }
+                })
+                .catch(error => console.error("Erro:", error));
+        });
+    });
+</script>
+
+
+    <!-- Botão para abrir o modal de comentários -->
+    <button class="btn btn-info btn-sm comment-btn" data-id="{{ post.id }}" data-platform="{{ post.source }}" data-bs-toggle="modal" data-bs-target="#commentModal">
+        <i class="bi bi-chat-dots"></i> Comentários
+    </button>
+                            </div>
+                        </div>
+                        <div class="card-footer d-flex justify-content-between">
+                            <span class="badge bg-info"><i class="bi bi-hand-thumbs-up"></i> {{ post.likes }}</span>
+                            <span class="badge bg-secondary"><i class="bi bi-chat-dots"></i> {{ post.comments }}</span>
+                            <span class="badge bg-success"><i class="bi bi-share"></i> {{ post.shares }}</span>
+                        </div>
+                        <div class="social-icon" style="position: absolute; top: 10px; right: 10px;">
+                            {% if posts|length > 1 %}
+                                <i class="bi bi-facebook text-primary me-1"></i>
+                                <i class="bi bi-instagram text-danger"></i>
+                            {% else %}
+                                {% if post.source == "Facebook" %}
+                                <i class="bi bi-facebook text-primary"></i>
+                                {% elif post.source == "Instagram" %}
+                                <i class="bi bi-instagram text-danger"></i>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <p class="text-center text-muted">Nenhum post encontrado.</p>
+    {% endif %}
+</div>
+
+    <!-- Modal de Confirmação -->
+<div class="modal fade" id="deleteConfirmationModal" tabindex="-1" aria-labelledby="deleteConfirmationLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteConfirmationLabel">Confirmação de Exclusão</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Tem certeza que deseja excluir este post? Essa ação não pode ser desfeita.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteButton">
+                    <span id="deleteButtonText">Excluir</span>
+
+                        <span class="visually-hidden">Carregando...</span>
+
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    document.querySelectorAll(".promote-btn").forEach(button => {
+        button.addEventListener("click", function () {
+            const postId = this.getAttribute("data-id");
+            const platform = this.getAttribute("data-platform");
+
+            fetch("/promote_posts", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ post_id: postId, platform: platform }),
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert("Postagem promovida com sucesso!");
+                    } else {
+                        alert("Erro ao promover a postagem: " + data.error);
+                    }
+                })
+                .catch(error => console.error("Erro:", error));
+        });
+    });
+
+</script>
+
+
+    <script>
+   let selectedPostId = null;
+let selectedPlatform = null;
+
+document.addEventListener('click', (event) => {
+    if (event.target.classList.contains('delete-btn')) {
+        selectedPostId = event.target.getAttribute('data-id');
+        selectedPlatform = event.target.getAttribute('data-platform');
+
+        // Abrir o modal de confirmação
+        const deleteModal = new bootstrap.Modal(document.getElementById('deleteConfirmationModal'));
+        deleteModal.show();
+    }
+});
+
+// Quando o botão "Excluir" no modal é clicado
+document.getElementById('confirmDeleteButton').addEventListener('click', () => {
+    if (selectedPostId && selectedPlatform) {
+        // Mostrar o spinner e alterar o texto do botão
+        const deleteButton = document.getElementById('confirmDeleteButton');
+        const deleteButtonText = document.getElementById('deleteButtonText');
+        const deleteSpinner = document.getElementById('deleteSpinner');
+        const errorMessage = document.getElementById('errorMessage');
+
+        deleteButton.disabled = true;
+        deleteButtonText.textContent = 'Processando...';
+        deleteSpinner.classList.remove('d-none');
+
+        // Fazer a requisição para excluir o post
+        fetch(`/delete_posts/${selectedPostId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams({
+                source: selectedPlatform,
+            }),
+        })
+            .then((response) => response.json())
+            .then((data) => {
+                const deleteModal = bootstrap.Modal.getInstance(document.getElementById('deleteConfirmationModal'));
+                deleteModal.hide(); // Fecha o modal
+
+                if (data.message) {
+                    alert('Post excluído com sucesso!');
+                    location.reload(); // Atualiza a página
+                } else if (data.error) {
+                    errorMessage.textContent = `Erro: ${data.error}`;
+                    errorMessage.classList.remove('d-none'); // Exibe o erro
+                }
+            })
+            .catch((error) => {
+                console.error('Erro:', error);
+                errorMessage.textContent = 'Erro ao excluir o post. Por favor, tente novamente.';
+                errorMessage.classList.remove('d-none'); // Exibe o erro
+            })
+            .finally(() => {
+                // Restaurar o botão ao estado inicial
+                deleteButton.disabled = false;
+                deleteButtonText.textContent = 'Excluir';
+                deleteSpinner.classList.add('d-none');
+            });
+    }
+});
+
+
+</script>
+
+<div id="deleteSpinner" class="custom-spinner ms-2 d-none" role="status"></div>
+<script>
+    .custom-spinner {
+    width: 1.5rem;
+    height: 1.5rem;
+    border: 3px solid transparent;
+    border-top: 3px solid #f39c12; /* Cor inicial */
+    border-right: 3px solid #d35400; /* Cor adicional */
+    border-radius: 50%;
+    animation: spin 1s linear infinite, pulse 1.5s ease-in-out infinite;
+    box-shadow: 0 0 10px rgba(243, 156, 18, 0.5), 0 0 20px rgba(211, 84, 0, 0.5);
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        box-shadow: 0 0 10px rgba(243, 156, 18, 0.5), 0 0 20px rgba(211, 84, 0, 0.5);
+    }
+    50% {
+        box-shadow: 0 0 20px rgba(243, 156, 18, 0.7), 0 0 30px rgba(211, 84, 0, 0.7);
+    }
+}
+
+</script>
+
+<div aria-live="polite" aria-atomic="true" class="position-fixed top-0 end-0 p-3" style="z-index: 1050;">
+    {% with messages = get_flashed_messages(with_categories=True) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="toast align-items-center text-bg-{{ category }} border-0 show" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            {{ message }}
+                        </div>
+                        <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+</div>
+
+
+<script>
+    document.querySelectorAll('.edit-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const postId = this.getAttribute('data-id');
+            const postMessage = this.getAttribute('data-message');
+
+            // Preenche os campos do modal
+            document.getElementById('editPostId').value = postId;
+            document.getElementById('editMessage').value = postMessage;
+        });
+    });
+
+    document.getElementById('saveEditBtn').addEventListener('click', function() {
+        const postId = document.getElementById('editPostId').value;
+        const updatedMessage = document.getElementById('editMessage').value;
+
+        // Cria o FormData para enviar os dados
+        const formData = new FormData();
+        formData.append('id', postId);
+        formData.append('message', updatedMessage);
+
+        // Faça a requisição para salvar as alterações
+        fetch('/edit_posts', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Post atualizado com sucesso!');
+                location.reload(); // Recarrega a página
+            } else {
+                alert('Erro ao editar o post.');
+            }
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            alert('Erro ao editar o post.');
+        });
+    });
+
+</script>
+</div>
+
+<!-- Modal de Comentários -->
+<!-- Modal de Comentários -->
+<div class="modal fade" id="commentModal" tabindex="-1" aria-labelledby="commentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <!-- Cabeçalho do modal -->
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="commentModalLabel">
+                    <i class="bi bi-chat-dots me-2"></i> Comentários
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <!-- Corpo do modal -->
+            <div class="modal-body p-4">
+                <!-- Spinner de carregamento -->
+                <div id="loadingSpinner" class="spinner mx-auto"></div>
+
+                <!-- Lista de comentários com carregamento infinito -->
+                <ul id="commentList" class="list-group overflow-auto" style="max-height: 500px;">
+                    <!-- Comentários vão ser inseridos aqui dinamicamente -->
+                </ul>
+
+
+
+                <!-- Seção de resposta -->
+                <div class="reply-section mt-4 d-flex gap-2">
+
+                    <textarea id="replyMessage" class="form-control shadow-sm" rows="2" placeholder="Escreva sua resposta..."></textarea>
+                    <button id="replyButton" class="btn btn-primary shadow-sm" disabled>
+                        <i class="bi bi-send-fill"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Rodapé do modal -->
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+   // JavaScript para melhorar a UX de comentários
+    let currentCommentId = '';
+    let currentPage = 1;
+    let loadingMore = false;
+    let postId = '';
+
+    // Elementos de cache para eficiência
+    const spinner = document.getElementById('loadingSpinner');
+    const commentList = document.getElementById('commentList');
+    const replyMessageInput = document.getElementById('replyMessage');
+    const replyButton = document.getElementById('replyButton');
+
+    // Função para carregar mais comentários
+    const loadMoreComments = async () => {
+        if (loadingMore) return;
+        loadingMore = true;
+        spinner.style.display = 'block';
+
+        try {
+            const response = await fetch(`/get_comments/${postId}?page=${currentPage}`);
+            const data = await response.json();
+
+            if (response.ok && data.comments.length > 0) {
+                data.comments.forEach(comment => appendComment(comment));
+                currentPage++;
+            } else if (currentPage === 1) {
+                document.getElementById('noCommentsText').style.display = 'block';
+            }
+        } catch (error) {
+            console.error('Erro ao carregar comentários:', error);
+        } finally {
+            spinner.style.display = 'none';
+            loadingMore = false;
+        }
+    };
+
+    // Função para adicionar comentário
+    const appendComment = (comment) => {
+        const commentItem = document.createElement('li');
+        commentItem.className = 'list-group-item d-flex align-items-start gap-2 fade-in';
+
+        commentItem.innerHTML = `
+            <div>
+                <img src="${comment.avatar || '/static/default-avatar.png'}" class="rounded-circle" style="width: 40px; height: 40px;" alt="Avatar">
+            </div>
+            <div class="flex-grow-1">
+                <div class="d-flex justify-content-between align-items-center">
+                    <strong class="comment-author">${comment.from}</strong>
+                    <small class="text-muted">${new Date(comment.created_time).toLocaleString()}</small>
+                </div>
+                <p>${comment.message}</p>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-sm btn-outline-primary reply-btn" data-id="${comment.id}">Responder</button>
+                    <button class="btn btn-sm btn-outline-like like-btn" data-id="${comment.id}">
+                        <i class="bi bi-hand-thumbs-up"></i> Curtir (${comment.likes || 0})
+                    </button>
+                </div>
+                <ul class="list-group mt-2" id="replyList-${comment.id}"></ul>
+            </div>
+        `;
+
+        commentList.appendChild(commentItem);
+
+        // Adicionar respostas se existirem
+        if (comment.replies) {
+            const replyList = document.getElementById(`replyList-${comment.id}`);
+            comment.replies.forEach(reply => appendReply(reply, replyList));
+        }
+    };
+
+    // Função para adicionar respostas
+    const appendReply = (reply, parentList) => {
+        const replyItem = document.createElement('li');
+        replyItem.className = 'list-group-item d-flex align-items-start gap-2';
+        replyItem.innerHTML = `
+            <div>
+                <img src="${reply.avatar || '/static/default-avatar.png'}" class="rounded-circle" style="width: 30px; height: 30px;" alt="Avatar">
+            </div>
+            <div class="flex-grow-1">
+                <div class="d-flex justify-content-between align-items-center">
+                    <strong class="comment-author">${reply.from}</strong>
+                    <small class="text-muted">${new Date(reply.created_time).toLocaleString()}</small>
+                </div>
+                <p>${reply.message}</p>
+            </div>
+        `;
+        parentList.appendChild(replyItem);
+    };
+
+    // Inicializar evento ao clicar em botões de comentários
+    const initCommentModal = () => {
+        document.querySelectorAll('.comment-btn').forEach(button => {
+            button.addEventListener('click', async () => {
+                postId = button.getAttribute('data-id');
+                currentPage = 1;
+                commentList.innerHTML = '';
+                await loadMoreComments();
+                new bootstrap.Modal(document.getElementById('commentModal')).show();
+            });
+        });
+    };
+
+    // Carregamento infinito usando Intersection Observer
+    const observer = new IntersectionObserver(async ([entry]) => {
+        if (entry.isIntersecting) {
+            await loadMoreComments();
+        }
+    }, { threshold: 0.1 });
+
+    observer.observe(document.getElementById('loadingSpinner'));
+
+    // Funções de resposta e curtidas
+    const initInteractions = () => {
+        commentList.addEventListener('click', async (event) => {
+            if (event.target.closest('.reply-btn')) {
+                currentCommentId = event.target.closest('.reply-btn').getAttribute('data-id');
+                replyMessageInput.value = '';
+                replyMessageInput.focus();
+            } else if (event.target.closest('.like-btn')) {
+                const likeButton = event.target.closest('.like-btn');
+                const commentId = likeButton.getAttribute('data-id');
+
+                try {
+                    const response = await fetch(`/like_comment/${commentId}`, { method: 'POST' });
+                    if (response.ok) {
+                        const likesText = likeButton.innerHTML.match(/\((\d+)\)/);
+                        let currentLikes = likesText ? parseInt(likesText[1], 10) : 0;
+                        likeButton.innerHTML = `<i class="bi bi-hand-thumbs-up"></i> Curtir (${currentLikes + 1})`;
+                    }
+                } catch (error) {
+                    console.error('Erro ao curtir comentário:', error);
+                }
+            }
+        });
+    };
+
+    // Ativar/Desativar botão de resposta
+    replyMessageInput.addEventListener('input', () => {
+        replyButton.disabled = !replyMessageInput.value.trim();
+    });
+
+    replyButton.addEventListener('click', async () => {
+        const message = replyMessageInput.value.trim();
+        if (!message) return;
+
+        replyButton.disabled = true;
+        replyButton.innerHTML = '<i class="bi bi-send-fill"></i> Enviando...';
+
+        try {
+            const response = await fetch(`/reply_comment/${currentCommentId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message })
+            });
+
+            if (response.ok) {
+                const newReply = {
+                    id: currentCommentId,
+                    from: 'Você',
+                    message,
+                    created_time: new Date().toISOString(),
+                    avatar: '/static/default-avatar.png'
+                };
+
+                const replyList = document.getElementById(`replyList-${currentCommentId}`);
+                appendReply(newReply, replyList);
+                replyMessageInput.value = '';
+            }
+        } catch (error) {
+            console.error('Erro ao enviar resposta:', error);
+        } finally {
+            replyButton.innerHTML = '<i class="bi bi-send-fill"></i>';
+            replyButton.disabled = false;
+        }
+    });
+
+    // Inicializar todas as interações
+    initCommentModal();
+    initInteractions();
+
+</script>
+
+
+
+{% endblock %}

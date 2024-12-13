@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-5">
+    <div class="text-center mb-5">
+        <h1 class="fw-bold text-primary">Painel de Logs - Electro Zone</h1>
+        <p class="text-secondary">Acompanhe as atividades realizadas no sistema de gestão de redes sociais.</p>
+    </div>
+
+    <!-- Formulário de Filtro -->
+    <form id="filter-form" class="mb-4">
+        <div class="row g-3 align-items-center">
+            <div class="col-md-3">
+                <label for="start_date" class="form-label">Data Inicial</label>
+                <input type="date" id="start_date" name="start_date" class="form-control" value="{{ request.args.get('start_date') }}">
+            </div>
+            <div class="col-md-3">
+                <label for="end_date" class="form-label">Data Final</label>
+                <input type="date" id="end_date" name="end_date" class="form-control" value="{{ request.args.get('end_date') }}">
+            </div>
+            <div class="col-md-3">
+                <label for="user" class="form-label">Usuário</label>
+                <select id="user" name="user" class="form-select">
+                    <option value="">Todos</option>
+                    {% for user in users %}
+                    <option value="{{ user.id }}" {% if request.args.get('user') == str(user.id) %}selected{% endif %}>
+                        {{ user.nome }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-primary mt-4">Filtrar</button>
+            </div>
+        </div>
+    </form>
+
+    <!-- Tabela de Logs -->
+    <div id="logs-table" class="table-responsive shadow-lg p-3 bg-white rounded">
+        <table class="table table-striped align-middle">
+            <thead class="bg-primary text-white text-center">
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Usuário</th>
+                    <th scope="col">Ação</th>
+                    <th scope="col">Horário</th>
+                </tr>
+            </thead>
+            <tbody id="logs-body">
+                {% for log in logs %}
+                <tr class="text-center">
+                    <th scope="row" class="text-secondary">{{ log.id }}</th>
+                    <td class="fw-bold text-dark">
+                        <i class="bi bi-person-circle text-primary me-2"></i>
+                        {{ log.user.nome if log.user else 'Desconhecido' }}
+                    </td>
+                    <td>
+                        <span class="badge
+                            {% if log.action == 'Adicionado' %} bg-success
+                            {% elif log.action == 'Atualizado' %} bg-warning text-dark
+                            {% elif log.action == 'Removido' %} bg-danger
+                            {% else %} bg-secondary {% endif %}">
+                            {{ log.action }}
+                        </span>
+                    </td>
+                    <td>
+                        <i class="bi bi-clock-fill text-primary"></i>
+                        {{ (log.timestamp + timedelta(hours=2)).strftime('%d/%m/%Y %H:%M:%S') if log.timestamp else 'N/A' }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+$(document).ready(function() {
+    // Captura o envio do formulário
+    $('#filter-form').on('submit', function(event) {
+        event.preventDefault();  // Impede o recarregamento da página
+
+        // Envia os dados do formulário via AJAX
+        $.ajax({
+            url: '/logs',  // A rota da sua API
+            type: 'GET',
+            data: $(this).serialize(),  // Serializa os dados do formulário
+            success: function(response) {
+                // Substitui o conteúdo da tabela com a resposta do servidor
+                $('#logs-table').html($(response).find('#logs-table').html());
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

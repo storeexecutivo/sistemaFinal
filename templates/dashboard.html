@@ -1,0 +1,320 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row g-4">
+    <!-- Métricas em tempo real -->
+    <div class="col-md-3">
+        <div class="card text-white mb-3 shadow-lg border-0 rounded-4 position-relative"
+             style="background: linear-gradient(to right, #6a11cb, #2575fc); transition: transform 0.2s;"
+             onmouseover="this.style.transform='scale(1.05)';" onmouseout="this.style.transform='scale(1)';">
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                    <i class="bi bi-people-fill fs-1 me-3"></i>
+                    <div>
+                        <h5 class="card-title">Seguidores <span class="badge bg-light text-dark ms-2" title="Total de seguidores em todas as plataformas">?</span></h5>
+                        <p class="card-text display-6 fw-bold">{{ fan_count }}</p>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-facebook fs-4 me-2"></i>
+                        <span>{{ facebook_followers }}</span>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-instagram fs-4 me-2"></i>
+                        <span>{{ instagram_followers }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card text-white mb-3 shadow-lg border-0 rounded-4 position-relative"
+             style="background: linear-gradient(to right, #ff7e5f, #feb47b); transition: transform 0.2s;"
+             onmouseover="this.style.transform='scale(1.05)';" onmouseout="this.style.transform='scale(1)';">
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                    <i class="bi bi-hand-thumbs-up-fill fs-1 me-3"></i>
+                    <div>
+                        <h5 class="card-title">Gostos<span class="badge bg-light text-dark ms-2" title="Curtidas totais em todas as plataformas">?</span></h5>
+                        <p class="card-text display-6 fw-bold">{{ total_likes }}</p>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-facebook fs-4 me-2"></i>
+                        <span>{{ total_likes_facebook }}</span>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-instagram fs-4 me-2"></i>
+                        <span>{{ total_likes_instagram }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card text-white mb-3 shadow-lg border-0 rounded-4 position-relative"
+             style="background: linear-gradient(to right, #00c6ff, #0072ff); transition: transform 0.2s;"
+             onmouseover="this.style.transform='scale(1.05)';" onmouseout="this.style.transform='scale(1)';">
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                    <i class="bi bi-chat-left-dots-fill fs-1 me-3"></i>
+                    <div>
+                        <h5 class="card-title">Comentários <span class="badge bg-light text-dark ms-2" title="Número total de comentários recebidos">?</span></h5>
+                        <p class="card-text display-6 fw-bold">{{ total_comments }}</p>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-facebook fs-4 me-2"></i>
+                        <span>{{ facebook_comments }}</span>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-instagram fs-4 me-2"></i>
+                        <span>{{ instagram_comments }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card text-white mb-3 shadow-lg border-0 rounded-4 position-relative"
+             style="background: linear-gradient(to right, #36d1dc, #5b86e5); transition: transform 0.2s;"
+             onmouseover="this.style.transform='scale(1.05)';" onmouseout="this.style.transform='scale(1)';">
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                    <i class="bi bi-share-fill fs-1 me-3"></i>
+                    <div>
+                        <h6 class="card-title">Compartilhamentos <span class="badge bg-light text-dark ms-2" title="Número total de compartilhamentos">?</span></h6>
+                        <p class="card-text display-6 fw-bold">{{ total_shares }}</p>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-facebook fs-4 me-2"></i>
+                        <span>{{ facebook_shares }}</span>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-instagram fs-4 me-2"></i>
+                        <span>{{ instagram_shares }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+    <!-- Gráfico de Engajamento -->
+<!-- Gráfico de Engajamento -->
+<div class="card my-5 shadow-lg border-0 rounded-4">
+    <div class="card-body">
+        <h5 class="card-title text-center">Tendências de Engajamento</h5>
+        <canvas id="engagementChart"></canvas>
+    </div>
+</div>
+
+    <!-- Postagens Recentes e Agendadas -->
+  <div class="row mt-5">
+    <h3 class="text-center mb-4"><i class="bi bi-clock-fill me-2"></i>Postagens Recentes e Agendadas</h3>
+
+    <!-- Recent Posts Section -->
+    <div class="col-lg-6 mb-4">
+        <h4 class="mb-3 text-primary"><i class="bi bi-clock-history me-2"></i>Postagens Recentes</h4>
+
+        {% if recent_posts %}
+            {% for posts in recent_posts %}
+            <div class="card mb-4 shadow-sm border-0 rounded-4 hover-effect">
+                <div class="card-body">
+                    <h5 class="card-title text-truncate">{{ posts.name }}</h5>
+                    <p class="card-text text-muted text-truncate">{{ posts.message }}</p>
+                    <span class="badge bg-primary">{{ posts.platform }}</span>
+
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <div>
+                            <span class="me-3"><i class="bi bi-hand-thumbs-up me-1"></i>{{ posts.likes.summary.total_count if posts.platform == 'Facebook' }}</span>
+                            <span class="me-3"><i class="bi bi-chat-left-dots me-1"></i>{{ posts.comments.summary.total_count if posts.platform == 'Facebook' }}</span>
+                            <span><i class="bi bi-share me-1"></i>{{ posts.shares.count if posts.platform == 'Facebook' }}</span>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="alert alert-info text-center" role="alert">
+                <i class="bi bi-info-circle me-2"></i>Não há postagens recentes.
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Scheduled Posts Section -->
+    <div class="col-lg-6 mb-4">
+        <h4 class="mb-3 text-success"><i class="bi bi-calendar-check-fill me-2"></i>Postagens Agendadas</h4>
+
+        {% if scheduled_posts %}
+            {% for post in scheduled_posts %}
+            <div class="card mb-4 shadow-sm border-0 rounded-4 hover-effect">
+                <div class="card-body">
+                    <h5 class="card-title text-truncate">{{ post.name }}</h5>
+                    <p class="card-text text-muted text-truncate">{{ post.message }}</p>
+                    <small class="text-muted d-block mt-2">
+                        <i class="bi bi-clock me-1"></i>Agendado para: <strong>{{ post.scheduled_time }}</strong>
+                    </small>
+
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="alert alert-info text-center" role="alert">
+                <i class="bi bi-info-circle me-2"></i>Não há postagens agendadas.
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.hover-effect {
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.hover-effect:hover {
+    transform: scale(1.02);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+.text-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+</style>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const ctx = document.getElementById('engagementChart').getContext('2d');
+new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: {{ labels|tojson }},
+        datasets: [
+            {
+                label: 'Likes Facebook',
+                data: {{ facebook_likes_data|tojson }},
+                borderColor: '#4267B2',
+                backgroundColor: 'rgba(66, 103, 178, 0.2)',
+                pointBackgroundColor: '#4267B2',
+                tension: 0.4,
+                pointHoverRadius: 8,
+                hoverBorderWidth: 2,
+            },
+            {
+                label: 'Comentários Facebook',
+                data: {{ facebook_comments_data|tojson }},
+                borderColor: '#3b5998',
+                backgroundColor: 'rgba(59, 89, 152, 0.2)',
+                pointBackgroundColor: '#3b5998',
+                tension: 0.4,
+                pointHoverRadius: 8,
+                hoverBorderWidth: 2,
+            },
+            {
+                label: 'Likes Instagram',
+                data: {{ instagram_likes_data|tojson }},
+                borderColor: '#E1306C',
+                backgroundColor: 'rgba(225, 48, 108, 0.2)',
+                pointBackgroundColor: '#E1306C',
+                tension: 0.4,
+                pointHoverRadius: 8,
+                hoverBorderWidth: 2,
+            },
+            {
+                label: 'Comentários Instagram',
+                data: {{ instagram_comments_data|tojson }},
+                borderColor: '#F56040',
+                backgroundColor: 'rgba(245, 96, 64, 0.2)',
+                pointBackgroundColor: '#F56040',
+                tension: 0.4,
+                pointHoverRadius: 8,
+                hoverBorderWidth: 2,
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                display: true,
+                position: 'top',
+                labels: {
+                    font: {
+                        size: 14,
+                    }
+                }
+            },
+            tooltip: {
+                enabled: true,
+                callbacks: {
+                    label: function (tooltipItem) {
+                        const value = tooltipItem.raw;
+                        const percentage = ((value / Math.max(...tooltipItem.dataset.data)) * 100).toFixed(2);
+                        return `${tooltipItem.dataset.label}: ${value} (${percentage}%)`;
+                    }
+                }
+            },
+        },
+        scales: {
+            x: {
+                grid: {
+                    display: false,
+                },
+                title: {
+                    display: true,
+                    text: 'Data',
+                    font: {
+                        size: 16,
+                    },
+                },
+            },
+            y: {
+                beginAtZero: true,
+                grid: {
+                    color: 'rgba(0, 0, 0, 0.1)',
+                },
+                title: {
+                    display: true,
+                    text: 'Engajamento',
+                    font: {
+                        size: 16,
+                    },
+                }
+            },
+        },
+        hover: {
+            mode: 'dataset',
+            intersect: false,
+        },
+        interaction: {
+            mode: 'nearest',
+            axis: 'x',
+            intersect: false,
+        },
+        animation: {
+            duration: 1000,
+            easing: 'easeInOutQuart',
+        },
+    },
+});
+</script>
+
+
+
+
+{% endblock %}
+
