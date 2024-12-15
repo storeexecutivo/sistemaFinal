@@ -38,8 +38,10 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', () => {
     const socket = io();
+
+    // Elementos DOM
     const senderItems = document.querySelectorAll('.sender-item');
     const chatArea = document.querySelector('.chat-area');
     const chatMessages = document.getElementById('chat-messages');
@@ -48,9 +50,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const selectedSender = document.getElementById('selected-sender');
     const closeChatButton = document.getElementById('close-chat');
     const loadingSpinner = document.getElementById('loading-spinner');
+
     let currentSenderId = null;
 
-    // Seleciona conversa
+    /**
+     * Exibe a conversa ao clicar no remetente.
+     */
     senderItems.forEach(item => {
         item.addEventListener('click', () => {
             const senderId = item.getAttribute('data-sender-id');
@@ -61,14 +66,17 @@ document.addEventListener('DOMContentLoaded', () => {
             recipientIdInput.value = senderId;
             currentSenderId = senderId;
 
-            chatMessages.innerHTML = '';
+            clearMessages();
             fetchMessages(senderId);
         });
     });
 
-    // Busca mensagens antigas
+    /**
+     * Busca mensagens antigas via API.
+     * @param {string} senderId - ID do remetente.
+     */
     function fetchMessages(senderId) {
-        loadingSpinner.classList.remove('hidden');
+        toggleSpinner(true);
 
         fetch(`/get_full_conversation?sender_id=${senderId}`)
             .then(response => {
@@ -77,51 +85,76 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 return response.json();
             })
-            .then(data => {
-                renderMessages(data.messages);
-            })
+            .then(data => renderMessages(data.messages))
             .catch(error => {
                 console.error('Erro ao buscar mensagens:', error);
                 alert('Não foi possível carregar as mensagens. Tente novamente mais tarde.');
             })
-            .finally(() => {
-                loadingSpinner.classList.add('hidden');
-            });
+            .finally(() => toggleSpinner(false));
     }
 
-    // Renderiza mensagens
+    /**
+     * Exibe ou oculta o spinner de carregamento.
+     * @param {boolean} show - Exibir spinner se true.
+     */
+    function toggleSpinner(show) {
+        loadingSpinner.classList.toggle('hidden', !show);
+    }
+
+    /**
+     * Renderiza as mensagens no chat.
+     * @param {Array} messages - Lista de mensagens.
+     */
     function renderMessages(messages) {
-        chatMessages.innerHTML = '';
-        messages.forEach(message => {
-            appendMessage(message.text, message.type);
-        });
+        clearMessages();
+        messages.forEach(({ text, type }) => appendMessage(text, type));
     }
 
-    // Adiciona mensagem ao DOM
+    /**
+     * Limpa as mensagens do chat.
+     */
+    function clearMessages() {
+        chatMessages.innerHTML = '';
+    }
+
+    /**
+     * Adiciona uma mensagem ao DOM.
+     * @param {string} text - Conteúdo da mensagem.
+     * @param {string} type - Tipo de mensagem ('incoming' ou 'outgoing').
+     */
     function appendMessage(text, type) {
         const messageDiv = document.createElement('div');
         messageDiv.classList.add('message', type);
+
         if (type === 'outgoing') {
             messageDiv.classList.add('sent');
         } else if (type === 'incoming') {
             messageDiv.classList.add('received');
         }
+
         messageDiv.textContent = text;
         chatMessages.appendChild(messageDiv);
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
-    // Fecha o chat
+    /**
+     * Fecha o chat.
+     */
     closeChatButton.addEventListener('click', () => {
         chatArea.classList.add('hidden');
         currentSenderId = null;
     });
 
-    // Envia mensagem
+    /**
+     * Envia uma mensagem.
+     */
     replyForm.addEventListener('submit', (e) => {
         e.preventDefault();
+
         const formData = new FormData(replyForm);
         const messageText = formData.get('message_text');
+
+        if (messageText.trim() === '') return; // Evita envio de mensagens vazias
 
         appendMessage(messageText, 'outgoing'); // Exibe mensagem localmente
         replyForm.reset(); // Limpa o campo de texto imediatamente
@@ -129,25 +162,36 @@ document.addEventListener('DOMContentLoaded', () => {
         fetch('/reply_message', {
             method: 'POST',
             body: formData
-        })
-
+        }).catch(error => {
+            console.error('Erro ao enviar mensagem:', error);
+            alert('Não foi possível enviar a mensagem. Tente novamente mais tarde.');
+        });
     });
 
-    // Recebe mensagens em tempo real
+    /**
+     * Gerencia mensagens recebidas em tempo real.
+     */
     socket.on('new_message', (data) => {
         if (data.conversation_id === currentSenderId) {
             appendMessage(data.message.text, 'incoming');
         } else {
-            const senderItem = document.querySelector(`.sender-item[data-sender-id="${data.conversation_id}"]`);
-            if (senderItem) {
-                const unreadIndicator = senderItem.querySelector('.unread-indicator');
-                unreadIndicator.classList.remove('hidden');
-            }
+            highlightUnreadMessage(data.conversation_id);
         }
     });
+
+    /**
+     * Destaca uma mensagem não lida no remetente correspondente.
+     * @param {string} senderId - ID do remetente.
+     */
+    function highlightUnreadMessage(senderId) {
+        const senderItem = document.querySelector(`.sender-item[data-sender-id="${senderId}"]`);
+        if (senderItem) {
+            const unreadIndicator = senderItem.querySelector('.unread-indicator');
+            if (unreadIndicator) unreadIndicator.classList.remove('hidden');
+        }
+    }
 });
 </script>
-
 
 
 <style>

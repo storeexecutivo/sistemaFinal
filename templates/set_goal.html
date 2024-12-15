@@ -1,58 +1,151 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<!-- Botão para abrir o modal -->
-<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#goalModal">
-  Definir Meta
-</button>
+<div class="container mt-5">
+  <h1 class="mb-4 text-center">Minhas Metas</h1>
 
-<h1>Lista de Metas</h1>
-<h2>Lista de Metas</h2>
 
- <div class="container mt-5">
-        <h1 class="mb-4">Metas</h1>
+    <div class="mb-3">
+      <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#goalModal">
+      <i class="fas fa-plus"></i> Definir Nova Meta
+    </button>
+</div>
+  <!-- Filtros -->
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <!-- Campo de busca -->
 
-        <!-- Verifica se existem metas e exibe uma tabela -->
-        {% if goals %}
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Tipo</th>
-                        <th>Período</th>
-                        <th>Likes</th>
-                        <th>Comentários</th>
-                        <th>Compartilhamentos</th>
-                        <th>Seguidores</th>
-                        <th>Criado em</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for goal in goals %}
-                        <tr>
-                            <td>{{ goal.id }}</td>
-                            <td>{{ goal.goal_type }}</td>
-                            <td>{{ goal.period_start }} - {{ goal.period_end }}</td>
-                            <td>{{ goal.likes_goal }}</td>
-                            <td>{{ goal.comments_goal }}</td>
-                            <td>{{ goal.shares_goal }}</td>
-                            <td>{{ goal.followers_goal }}</td>
-                            <td>{{ goal.created_at }}</td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        {% else %}
-            <p>Não há metas cadastradas.</p>
-        {% endif %}
-    </div>
 
-<!-- Modal -->
+  <!-- Botão para abrir o modal -->
+
+
+   <div class="input-group w-100 w-md-50">
+    <span class="input-group-text bg-primary text-white">
+      <i class="bi bi-search"></i> <!-- Usando Bootstrap Icons -->
+    </span>
+    <input
+      type="text"
+      id="goalSearch"
+      class="form-control"
+      placeholder="Pesquise por tipo, período ou palavra-chave..."
+      aria-label="Pesquisar"
+    >
+  </div>
+
+  <!-- Filtro por tipo -->
+  <div class="input-group w-100 w-md-25">
+    <label for="goalTypeFilter" class="input-group-text bg-primary text-white">
+      <i class="bi bi-funnel"></i> <!-- Usando Bootstrap Icons -->
+    </label>
+    <select id="goalTypeFilter" class="form-select" aria-label="Filtrar por tipo">
+      <option value="">Todos os Tipos</option>
+      <option value="weekly">Semanal</option>
+      <option value="monthly">Mensal</option>
+      <option value="quarterly">Trimestral</option>
+      <option value="semiannual">Semestral</option>
+      <option value="annual">Anual</option>
+    </select>
+  </div>
+
+  </div>
+
+  <!-- Tabela de Metas -->
+  {% if goals %}
+  <table class="table table-striped table-hover" id="goalTable">
+    <thead class="table-dark">
+      <tr>
+        <th>Tipo</th>
+        <th>Likes</th>
+        <th>Comentários</th>
+        <th>Compartilhamentos</th>
+        <th>Seguidores</th>
+        <th>Período</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for goal in goals %}
+      <tr data-goal-type="{{ goal.goal_type }}">
+        <td>
+          {% if goal.goal_type == "weekly" %} Semanal
+          {% elif goal.goal_type == "monthly" %} Mensal
+          {% elif goal.goal_type == "quarterly" %} Trimestral
+          {% elif goal.goal_type == "semiannual" %} Semestral
+          {% elif goal.goal_type == "annual" %} Anual
+          {% else %} Desconhecido
+          {% endif %}
+        </td>
+        <td>{{ goal.likes_goal }}</td>
+        <td>{{ goal.comments_goal }}</td>
+        <td>{{ goal.shares_goal }}</td>
+        <td>{{ goal.followers_goal }}</td>
+        <td>
+          {{ goal.period_start.strftime('%d/%m/%Y') }} - {{ goal.period_end.strftime('%d/%m/%Y') }}
+        </td>
+        <td>
+          <!-- Botão de editar -->
+          <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#editGoalModal{{ goal.id }}">
+            <i class="bi bi-pencil"></i>
+          </button>
+          <!-- Formulário de exclusão -->
+          <form action="{{ url_for('delete_goal', goal_id=goal.id) }}" method="POST" class="d-inline">
+            <button class="btn btn-danger btn-sm" type="submit">
+              <i class="bi bi-trash"></i>
+            </button>
+          </form>
+        </td>
+      </tr>
+
+                   <!-- Modal para Edição -->
+            <div class="modal fade" id="editGoalModal{{ goal.id }}" tabindex="-1" aria-labelledby="editGoalModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <form method="POST" action="{{ url_for('edit_goal', goal_id=goal.id) }}">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="editGoalModalLabel">Editar Meta</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                    <label for="likes_goal" class="form-label">Meta de Likes:</label>
+                                    <input type="number" name="likes_goal" id="likes_goal" class="form-control" value="{{ goal.likes_goal }}" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="comments_goal" class="form-label">Meta de Comentários:</label>
+                                    <input type="number" name="comments_goal" id="comments_goal" class="form-control" value="{{ goal.comments_goal }}" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="shares_goal" class="form-label">Meta de Compartilhamentos:</label>
+                                    <input type="number" name="shares_goal" id="shares_goal" class="form-control" value="{{ goal.shares_goal }}" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="followers_goal" class="form-label">Meta de Seguidores:</label>
+                                    <input type="number" name="followers_goal" id="followers_goal" class="form-control" value="{{ goal.followers_goal }}" required>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {% else %}
+  <div class="alert alert-info text-center">
+    <i class="fas fa-info-circle"></i> Você ainda não definiu nenhuma meta.
+  </div>
+  {% endif %}
+</div>
+<!-- Modal para Criar Meta -->
 <div class="modal fade" id="goalModal" tabindex="-1" aria-labelledby="goalModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="goalModalLabel">Definir Meta</h5>
+        <h5 class="modal-title" id="goalModalLabel">Definir Nova Meta</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
@@ -67,32 +160,61 @@
               <option value="annual">Anual</option>
             </select>
           </div>
-
           <div class="mb-3">
             <label for="likes_goal" class="form-label">Meta de Likes</label>
             <input type="number" name="likes_goal" class="form-control" required>
           </div>
-
           <div class="mb-3">
             <label for="comments_goal" class="form-label">Meta de Comentários</label>
             <input type="number" name="comments_goal" class="form-control" required>
           </div>
-
           <div class="mb-3">
             <label for="shares_goal" class="form-label">Meta de Compartilhamentos</label>
             <input type="number" name="shares_goal" class="form-control" required>
           </div>
-
           <div class="mb-3">
             <label for="followers_goal" class="form-label">Meta de Seguidores</label>
             <input type="number" name="followers_goal" class="form-control" required>
           </div>
-
-          <button type="submit" class="btn btn-primary">Definir Meta</button>
+          <button type="submit" class="btn btn-success w-100">Salvar Meta</button>
         </form>
       </div>
     </div>
   </div>
 </div>
+<!-- Script para filtros dinâmicos -->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const searchInput = document.getElementById('goalSearch');
+  const typeFilter = document.getElementById('goalTypeFilter');
+  const tableRows = document.querySelectorAll('#goalTable tbody tr');
 
+  function filterGoals() {
+    const searchText = searchInput.value.toLowerCase();
+    const selectedType = typeFilter.value;
+
+    tableRows.forEach(row => {
+      const goalType = row.getAttribute('data-goal-type').toLowerCase();
+      const periodText = row.querySelector('td:nth-child(6)').innerText.toLowerCase();
+
+      const matchesSearch = searchText === '' || periodText.includes(searchText) || goalType.includes(searchText);
+      const matchesType = selectedType === '' || goalType === selectedType;
+
+      // Exibir ou ocultar a linha com base nos filtros
+      if (matchesSearch && matchesType) {
+        row.style.display = '';
+      } else {
+        row.style.display = 'none';
+      }
+    });
+  }
+
+  // Atualizar a tabela quando o usuário digitar ou mudar o tipo
+  searchInput.addEventListener('input', filterGoals);
+  typeFilter.addEventListener('change', filterGoals);
+});
+</script>
+
+<!-- Bootstrap -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 {% endblock %}

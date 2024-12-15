@@ -95,7 +95,7 @@ AD_ACCOUNT_ID = 'act_1772358199633718'
 INSTAGRAM_ACCOUNT_ID = '17841465681073010'
 #PAGE_ID = '101777818499902'
 PAGE_ID = '111771022018850'
-ACCESS_TOKEN = "EAA6jGHZB8lvkBO6ceww9bZBaXVpjM43P1YVKUtmZBvby0KTi9NQYVcZCqrwX30twZC98vjFCNpXuiC6mznLnv8bpYEdf9NxziXXOuZBTYBtvlXOM8UKpOzRD6xelZA5roKjACekbZALaaZC6sZCZByk4jxBR6JBVkjtPn581aOHeJZBEGRTpbsGZCt1c5vZByzZAZAa50ZC0ZD"
+ACCESS_TOKEN = "EAA6jGHZB8lvkBOyOUWZAxAYdWkSCrKqYZAdQL99gHMMtjvrHil2OMyUEWZA2OQZCGCRCsVenpB9JSegdZBybZCaQlQfh1c8zekPxvc8VAYLr7wmN20JOAQAokVUKaAHpprcME1sEXt0kCd8j7SZBvaEkJAuo1nN7yaa2pkfwC0992nmgWQIKIDtlBdaTT6HXgRoZD"
 #ACCESS_TOKEN = "EAA6jGHZB8lvkBO884CZCJgKehFbpVL6x0SbHgBrUZBGzoLZBkZA2Jc11I3VZBknyZBFMkPExvD4YToJnDZBOl6VKqTYNzEYvr8gnZCK98c3GZCtELK1R2zOeVJz6TdNqb7dYUDwMZCRwctsxgbd0RvmrMuSgXkG1s47EqrWkRjZAHIMWwIL5yghd9WuL4QiKnobwG0BqhJcZD"
 graph = fb.GraphAPI(ACCESS_TOKEN)
 
@@ -148,10 +148,12 @@ class ScheduledPost(db.Model):
     name = db.Column(db.String(150), nullable=False)
     message = db.Column(db.String(500), nullable=False)
     scheduled_time = db.Column(db.DateTime, nullable=False)
+    image_filename = db.Column(db.String(255), nullable=True)  # Novo campo para o arquivo de imagem
     status = db.Column(db.String(20), default="PENDING")  # Status: PENDING, POSTED, FAILED
 
     def __repr__(self):
         return f'<ScheduledPost {self.name}>'
+
 
 # Modelo para usuários
 class User(UserMixin,db.Model):
@@ -259,6 +261,9 @@ def logout():
 
 
 VERIFY_TOKEN = ACCESS_TOKEN
+#EAA6jGHZB8lvkBOZBgc66s7ZCLiVsg8TwD8BixphDTIZAFliyJvTKRgV2nWVO7Qz6CxcBOQjXtgKe47cO3F8SIDTA5OyEejDww6N6lIw2ZAmjunZAxOcmWbS2jksuZBSaOcziY06zxpTaVQwBYG8Bj0SeR2sZBUHkn7OIYugqEMlZAhEJTl7HkWZCXktEGfBxBGF2QCiQZDZD
+
+
 
 @app.route('/webhook', methods=['GET', 'POST'])
 def webhook():
@@ -283,11 +288,11 @@ def webhook():
 
 def post_scheduled_posts():
     with app.app_context():
-        # Define o fuso horário correto (por exemplo, 'Africa/Maputo')
+        # Define o fuso horário
         tz = pytz.timezone('Africa/Maputo')
         now = datetime.now(tz)
 
-        # Busca todos os posts que estão agendados para agora ou antes e não foram postados
+        # Busca posts pendentes
         pending_posts = ScheduledPost.query.filter(
             ScheduledPost.scheduled_time <= now,
             ScheduledPost.status == "PENDING"
@@ -295,24 +300,39 @@ def post_scheduled_posts():
 
         for post in pending_posts:
             try:
-                # Publicar no Facebook
-                response = graph.put_object("me", "feed", message=post.message)
-                post.post_id = response['id']
+                if post.image_filename:  # Com imagem
+                    filepath = os.path.join(app.config['UPLOAD_FOLDER'], post.image_filename)
+                    with open(filepath, "rb") as image:
+                        response = graph.put_photo(image, message=post.message)
+                        post.post_id = response.get('post_id')
+                else:  # Sem imagem
+                    response = graph.put_object("me", "feed", message=post.message)
+                    post.post_id = response.get('id')
+
                 post.status = "POSTED"
 
-                # Armazenar os detalhes do post na tabela Post
+                # Salvar detalhes no banco
                 new_post = Post(
-                    post_id=response['id'],
+                    post_id=post.post_id,
                     name=post.name,
                     likes=0,
                     comments=0,
                     shares=0
                 )
                 db.session.add(new_post)
+
             except Exception as e:
                 post.status = "FAILED"
                 print(f"Erro ao postar: {e}")
-            db.session.commit()
+            finally:
+                db.session.commit()
+
+                # Limpar arquivo temporário se houver
+                if post.image_filename:
+                    try:
+                        os.remove(os.path.join(app.config['UPLOAD_FOLDER'], post.image_filename))
+                    except FileNotFoundError:
+                        print(f"Arquivo {post.image_filename} já removido ou não encontrado.")
 
 
 # Executa a função a cada minuto
@@ -390,6 +410,7 @@ def listar_usuarios():
 # Rota para criar um novo usuário
 @app.route('/usuarios/novo', methods=['GET', 'POST'])
 def criar_usuario():
+    usuarios = User.query.all()
     if request.method == 'POST':
         nome = request.form.get('nome')
         email = request.form.get('email')
@@ -398,6 +419,10 @@ def criar_usuario():
         # Verificar se os campos obrigatórios foram preenchidos
         if not nome or not email:
             flash("Nome e Email são obrigatórios.", "danger")
+            return redirect(url_for('criar_usuario'))
+            # Verificar se o nome já está cadastrado
+        if User.query.filter_by(nome=nome).first():
+            flash("Nome já cadastrado.", "danger")
             return redirect(url_for('criar_usuario'))
 
         # Verificar se o email já está cadastrado
@@ -424,7 +449,7 @@ def criar_usuario():
             return redirect(url_for('criar_usuario'))
 
     # Renderizar o formulário de criação de usuários
-    return render_template('listar.html')
+    return render_template('listar.html',  usuarios=usuarios)
 
 
 # Rota para editar um usuário
@@ -619,26 +644,48 @@ def schedule_post():
         message = request.form.get('message')
         post_name = request.form.get('post_name')
         scheduled_time_str = request.form.get('scheduled_time')
+        file = request.files.get('file')
 
-        # Verificar se todos os campos foram preenchidos
+        # Validar campos obrigatórios
         if not message or not post_name or not scheduled_time_str:
-            flash("Todos os campos são obrigatórios.", "danger")
+            flash("Todos os campos são obrigatórios, exceto a imagem.", "danger")
             return redirect(url_for('schedule_post'))
 
+        # Validar imagem (se enviada)
+        image_filename = None
+        if file and file.filename:
+            if allowed_file(file.filename):
+                try:
+                    image_filename = secure_filename(file.filename)
+                    save_path = os.path.join(app.config['UPLOAD_FOLDER'], image_filename)
+                    file.save(save_path)
+                    app.logger.info(f"Arquivo salvo em {save_path}")
+                except Exception as e:
+                    app.logger.error(f"Erro ao salvar a imagem: {str(e)}")
+                    flash("Erro ao salvar a imagem. Verifique as permissões do servidor.", "danger")
+                    return redirect(url_for('schedule_post'))
+            else:
+                app.logger.warning(f"Tipo de arquivo não permitido: {file.filename}")
+                flash("Tipo de arquivo não permitido. Envie uma imagem válida.", "danger")
+                return redirect(url_for('schedule_post'))
+        else:
+            app.logger.info("Nenhuma imagem enviada ou nome de arquivo vazio.")
+
         try:
-            # Convertendo a data e hora fornecida para um objeto datetime
+            # Converter o horário agendado para datetime
             scheduled_time = datetime.strptime(scheduled_time_str, "%Y-%m-%dT%H:%M")
 
-            # Verificar se o horário agendado é no futuro
+            # Garantir que o horário seja no futuro
             if scheduled_time <= datetime.now():
                 flash("O horário agendado deve ser no futuro.", "danger")
                 return redirect(url_for('schedule_post'))
 
-            # Criar um novo post agendado
+            # Criar post agendado
             new_scheduled_post = ScheduledPost(
                 name=post_name,
                 message=message,
-                scheduled_time=scheduled_time
+                scheduled_time=scheduled_time,
+                image_filename=image_filename  # Corrigido
             )
 
             db.session.add(new_scheduled_post)
@@ -648,14 +695,13 @@ def schedule_post():
             registrar_log(
                 current_user.id,
                 'schedule_post',
-                details=f"Post agendado com sucesso: {post_name} para {scheduled_time}."
+                details=f"Post agendado: {post_name} para {scheduled_time}."
             )
 
             flash("Post agendado com sucesso!", "success")
         except ValueError:
             flash("Formato de data e hora inválido. Use o formato YYYY-MM-DD HH:MM.", "danger")
         except Exception as e:
-            # Registrar log de erro
             registrar_log(
                 current_user.id,
                 'schedule_post_error',
@@ -663,10 +709,10 @@ def schedule_post():
             )
             flash(f"Erro ao agendar o post: {str(e)}", "danger")
 
-        # Redirecionar para a página inicial ou uma rota de sua escolha
         return redirect(url_for('dashboard'))
 
     return render_template('schedule_post.html')
+
 
 
 @app.route('/scheduled_posts')
@@ -770,7 +816,6 @@ def engagement_report():
     print(f"Days for Goal Type: {days_for_goal_type}")
     print(f"Min Date: {min_date}")
 
-
     # Verificar se metas foram definidas para a semana atual
     current_week_start = now - timedelta(days=now.weekday())
     current_goal = Goal.query.filter(
@@ -779,6 +824,9 @@ def engagement_report():
         Goal.goal_type == selected_goal_type
     ).first()
 
+    # Se não houver metas para a semana atual, redireciona para a tela set_goal
+    if current_goal is None:
+        return redirect(url_for('set_goal'))
 
     try:
         # Buscar os 5 posts mais curtidos
@@ -1632,8 +1680,6 @@ def post_to_both():
         flash(f"Ocorreu um erro: {str(e)}", "danger")
         return redirect(url_for('dashboard'))
 
-
-
 def post_to_instagram_api(image_url, caption):
     # Criar container de mídia
     create_media_url = f"https://graph.facebook.com/v16.0/{INSTAGRAM_ACCOUNT_ID}/media"
@@ -2148,13 +2194,16 @@ def get_full_conversation():
 
         messages = []
         for conversation in response.get('data', []):
-            for msg in conversation.get('messages', {}).get('data', []):
-                is_sent = msg.get('from', {}).get('id') == PAGE_ID
-                messages.append({
-                    "text": msg.get("message", ""),
-                    "type": "sent" if is_sent else "received",
-                    "created_time": msg.get("created_time", "Desconhecido")
-                })
+            # Verifica se o sender_id corresponde
+            if any(msg.get('from', {}).get('id') == sender_id for msg in conversation.get('messages', {}).get('data', [])):
+                for msg in conversation.get('messages', {}).get('data', []):
+                    if msg.get('from', {}).get('id') == sender_id or msg.get('from', {}).get('id') == PAGE_ID:
+                        is_sent = msg.get('from', {}).get('id') == PAGE_ID
+                        messages.append({
+                            "text": msg.get("message", ""),
+                            "type": "sent" if is_sent else "received",
+                            "created_time": msg.get("created_time", "Desconhecido")
+                        })
 
         # Inverte a lista de mensagens antes de retorná-la
         messages.reverse()
@@ -2162,7 +2211,6 @@ def get_full_conversation():
         return jsonify({"messages": messages})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
 
 
 # Função para buscar mensagens
@@ -2992,7 +3040,6 @@ def get_insights():
         'instagram_account_insights': instagram_data
     })
 
-
 @app.route('/set_goal', methods=['GET', 'POST'])
 @login_required
 def set_goal():
@@ -3018,10 +3065,22 @@ def set_goal():
             period_end = datetime(now.year, 3 * quarter + 1, 1) - timedelta(days=1)
         elif goal_type == 'semiannual':
             period_start = datetime(now.year, 1 if now.month <= 6 else 7, 1)
-            period_end = datetime(now.year, 6 if now.month <= 6 else 12, 30)
+            period_end = datetime(now.year, 6 if now.month <= 6 else 12, 31)
         elif goal_type == 'annual':
             period_start = datetime(now.year, 1, 1)
             period_end = datetime(now.year, 12, 31)
+
+        # Verificar períodos sobrepostos no banco de dados
+        existing_goal = Goal.query.filter(
+            Goal.user_id == current_user.id,
+            Goal.goal_type == goal_type,
+            Goal.period_start <= period_end,  # Período atual termina depois de uma existente
+            Goal.period_end >= period_start   # Período atual começa antes de uma existente
+        ).first()
+
+        if existing_goal:
+            flash("Já existe uma meta definida para este período!", "error")
+            return redirect(url_for('set_goal'))
 
         # Salvar meta no banco de dados
         goal = Goal(
@@ -3039,16 +3098,93 @@ def set_goal():
         flash("Meta definida com sucesso!", "success")
         return redirect(url_for('set_goal'))
 
-    return render_template('set_goal.html')
+    user_goals = Goal.query.filter_by(user_id=current_user.id).order_by(Goal.period_start.desc()).all()
+    return render_template('set_goal.html',  goals=user_goals)
+
+
+@app.route('/delete_goal/<int:goal_id>', methods=['POST'])
+@app.route('/delete_goal/<int:goal_id>', methods=['POST'])
+@login_required
+def delete_goal(goal_id):
+    goal = Goal.query.get_or_404(goal_id)
+    now = datetime.now().date()  # Converte `now` para `datetime.date`
+
+    # Verifica se o período já começou
+    if now >= goal.period_start:
+        flash("Não é permitido excluir metas com o período já iniciado.", "warning")
+        return redirect(url_for('set_goal'))
+
+    # Exclui a meta
+    db.session.delete(goal)
+    db.session.commit()
+    flash("Meta excluída com sucesso!", "success")
+    return redirect(url_for('set_goal'))
+
+
+@app.route('/edit_goal/<int:goal_id>', methods=['POST'])
+@login_required
+def edit_goal(goal_id):
+    goal = Goal.query.get_or_404(goal_id)
+    now = datetime.now().date()  # Converta `now` para `datetime.date`
+
+    if now >= goal.period_start:
+        flash("Não é permitido editar metas com o período já iniciado.", "warning")
+        return redirect(url_for('set_goal'))
+
+    # Atualize os campos da meta
+    goal.likes_goal = int(request.form.get('likes_goal', 0))
+    goal.comments_goal = int(request.form.get('comments_goal', 0))
+    goal.shares_goal = int(request.form.get('shares_goal', 0))
+    goal.followers_goal = int(request.form.get('followers_goal', 0))
+
+    db.session.commit()
+    flash("Meta editada com sucesso!", "success")
+    return redirect(url_for('set_goal'))
 
 
 @app.route('/set_goal', methods=['GET'])
 def get_goals():
     # Recupera todas as metas do banco de dados
     goals = Goal.query.all()
-
+    print(goals)
     # Renderiza o template HTML e passa as metas para ele
     return render_template('set_goal.html', goals=goals)
+
+
+@app.route('/set_goal', methods=['GET'])
+@login_required
+def view_goals():
+    # Recuperar metas do banco de dados associadas ao usuário atual
+    user_goals = Goal.query.filter_by(user_id=current_user.id).order_by(Goal.period_start.desc()).all()
+
+    # Renderizar a página com as metas
+    return render_template('view_goals.html', goals=user_goals)
+
+import facebook
+
+@app.route('/cled')
+def cled():
+    try:
+        # Obtenha os posts da página
+        posts = graph.get_connections(id=PAGE_ID, connection_name='posts')
+
+        # Para cada post, busque os comentários e reações
+        post_details = []
+        for post in posts['data']:
+            post_id = post['id']
+            post_info = graph.get_connections(id=post_id, connection_name='comments')
+            reactions_info = graph.get_connections(id=post_id, connection_name='reactions')
+            post_details.append({
+                'post': post,
+                'comments': post_info.get('data', []),
+                'reactions': reactions_info.get('data', [])
+            })
+
+        # Renderiza a página HTML com os posts e interações
+        return render_template('indexx.html', post_details=post_details)
+
+    except facebook.GraphAPIError as e:
+        return f"Erro ao acessar dados: {str(e)}", 500
 
 
 if __name__ == '__main__':

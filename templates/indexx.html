@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notificações da Página</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        h1 {
+            color: #333;
+        }
+        .notification {
+            background-color: white;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+        }
+        .notification p {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Notificações da Página</h1>
+
+    {% if notifications %}
+        <div>
+            {% for notification in notifications %}
+                <div class="notification">
+                    <p><strong>Tipo:</strong> {{ notification['title'] }}</p>
+                    <p><strong>Data:</strong> {{ notification['created_time'] }}</p>
+                    <p><strong>Mensagem:</strong> {{ notification['message'] }}</p>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p>Não há notificações disponíveis.</p>
+    {% endif %}
+
+</body>
+</html>

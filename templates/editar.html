@@ -22,9 +22,8 @@
             <div class="input-group">
                 <span class="input-group-text"><i class="bi bi-briefcase"></i></span>
                 <select class="form-select" id="role" name="role">
-                    <option value="Admin" {% if usuario.role == "Admin" %}selected{% endif %}>Admin</option>
-                    <option value="Usuario" {% if usuario.role == "Usuario" %}selected{% endif %}>Usuário</option>
-                    <option value="Moderador" {% if usuario.role == "Moderador" %}selected{% endif %}>Moderador</option>
+                    <option value="Administrador" {% if usuario.role == "Administrador" %}selected{% endif %}>Administrador</option>
+                    <option value="Editor" {% if usuario.role == "Editor" %}selected{% endif %}>Editor</option>
                 </select>
             </div>
         </div>

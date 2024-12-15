@@ -19,8 +19,13 @@
             </button>
         </div>
 
+        <!-- Área de busca -->
+        <div class="mb-3">
+            <input type="text" id="search-faq" class="form-control" placeholder="Buscar FAQ...">
+        </div>
+
         <!-- Lista de FAQs -->
-                <div class="card shadow">
+        <div class="card shadow">
             <div class="card-header bg-secondary text-white d-flex justify-content-between">
                 <h3 class="mb-0">Lista de FAQs</h3>
             </div>
@@ -39,14 +44,7 @@
                             </tr>
                         </thead>
                         <tbody id="faq-list">
-                            <!-- Skeleton loader -->
-                            <tr id="loading-row">
-                                <td colspan="3" class="text-center">
-                                    <div class="spinner-border text-primary" role="status">
-                                        <span class="visually-hidden">Loading...</span>
-                                    </div>
-                                </td>
-                            </tr>
+                            <!-- Dados dinâmicos serão inseridos aqui -->
                         </tbody>
                     </table>
                 </div>
@@ -54,40 +52,15 @@
                 <!-- Paginação -->
                 <nav>
                     <ul class="pagination justify-content-center" id="pagination">
-                        <!-- Será preenchido dinamicamente -->
+                        <!-- Links de paginação dinâmicos -->
                     </ul>
                 </nav>
             </div>
         </div>
     </div>
-    </div>
 
-    <!-- Modal para adicionar FAQ -->
-    <div class="modal fade" id="addModal" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="addModalLabel">Adicionar Nova FAQ</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="add-faq-form">
-                        <div class="mb-3">
-                            <label for="question" class="form-label">Pergunta:</label>
-                            <input type="text" id="question" class="form-control" placeholder="Digite a pergunta" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="answer" class="form-label">Resposta:</label>
-                            <textarea id="answer" class="form-control" rows="4" placeholder="Digite a resposta" required></textarea>
-                        </div>
-                        <button type="submit" class="btn btn-primary w-100">Adicionar FAQ</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <!-- Modal para edição -->
+     <!-- Modal para edição -->
     <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -135,46 +108,54 @@
         </div>
     </div>
 
+
+    <!-- Modal para adicionar FAQ -->
+    <div class="modal fade" id="addModal" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addModalLabel">Adicionar Nova FAQ</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="add-faq-form">
+                        <div class="mb-3">
+                            <label for="question" class="form-label">Pergunta:</label>
+                            <input type="text" id="question" class="form-control" placeholder="Digite a pergunta" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="answer" class="form-label">Resposta:</label>
+                            <textarea id="answer" class="form-control" rows="4" placeholder="Digite a resposta" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Adicionar FAQ</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal genérico de confirmação -->
+    <div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="confirmationModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmationModalLabel">Confirmação</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="confirmationMessage">
+                    Tem certeza que deseja realizar esta ação?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-danger" id="confirmAction">Confirmar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
-        $(document).ready(function () {
-            loadFAQs();
 
-            function showFlashMessage(message, type) {
-                var flashHtml = `
-                    <div class="alert alert-${type} alert-dismissible fade show" role="alert">
-                        ${message}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>`;
-                $('#flash-messages').html(flashHtml); // Substitui a mensagem anterior
-                setTimeout(() => {
-                    $('.alert').fadeOut(() => $(this).remove()); // Efeito de fade antes de remover
-                }, 5000);
-            }
-
-
-            function loadFAQs() {
-                $.get('/faqs', function (data) {
-                    $('#faq-list').empty();
-                    data.forEach(function (faq) {
-                        $('#faq-list').append(`
-                            <tr id="faq-${faq.id}">
-                                <td>${faq.question}</td>
-                                <td>${faq.answer}</td>
-                                <td class="text-center">
-                                    <button class="btn btn-sm btn-info me-1" onclick="openEditModal(${faq.id}, '${faq.question}', '${faq.answer}')">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-danger" onclick="confirmDeleteFAQ(${faq.id})">
-                                        <i class="fas fa-trash-alt"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                        `);
-                    });
-                });
-            }
-
-            $('#add-faq-form').submit(function (event) {
+$('#add-faq-form').submit(function (event) {
                 event.preventDefault();
                 var question = $('#question').val();
                 var answer = $('#answer').val();
@@ -198,172 +179,165 @@
                 });
             });
 
-            window.openEditModal = function (id, question, answer) {
-                $('#edit-faq-id').val(id);
-                $('#edit-question').val(question);
-                $('#edit-answer').val(answer);
-                $('#editModal').modal('show');
-            };
 
-            $('#save-edit').click(function () {
-                var id = $('#edit-faq-id').val();
-                var question = $('#edit-question').val();
-                var answer = $('#edit-answer').val();
 
-                $.ajax({
-                    url: `/faqs/${id}`,
-                    method: 'PUT',
-                    contentType: 'application/json',
-                    data: JSON.stringify({ question: question, answer: answer }),
-                    success: function () {
-                        $('#editModal').modal('hide');
-                        showFlashMessage('FAQ editada com sucesso!', 'success');
-                        location.reload(); // Atualiza a página
-                        loadFAQs();
-                    },
-                    error: function () {
-                        showFlashMessage('Erro ao editar FAQ.', 'danger');
-                    }
-                });
+window.openEditModal = function (id, question, answer) {
+    // Preencher o modal de edição com os dados
+    $('#edit-faq-id').val(id);
+    $('#edit-question').val(question);
+    $('#edit-answer').val(answer);
+    $('#editModal').modal('show');
+};
+
+$('#save-edit').click(function () {
+    // Capturar valores do modal de edição
+    var id = $('#edit-faq-id').val();
+    var question = $('#edit-question').val();
+    var answer = $('#edit-answer').val();
+
+    // Fazer requisição PUT para atualizar a FAQ
+    $.ajax({
+        url: `/faqs/${id}`, // Corrigido: aspas no URL
+        method: 'PUT',
+        contentType: 'application/json',
+        data: JSON.stringify({ question: question, answer: answer }),
+        success: function () {
+            $('#editModal').modal('hide'); // Fechar o modal
+            showFlashMessage('FAQ editada com sucesso!', 'success');
+            location.reload(); // Recarregar página para atualizar lista
+        },
+        error: function (xhr) {
+            console.error('Erro ao editar FAQ:', xhr.responseText);
+            showFlashMessage('Erro ao editar FAQ.', 'danger');
+        }
+    });
+});
+
+window.confirmDeleteFAQ = function (faqId) {
+    // Mostrar modal de confirmação para exclusão
+    $('#confirmationMessage').text("Tem certeza que deseja excluir esta FAQ?");
+    $('#confirmationModal').modal('show');
+
+    // Remover listeners duplicados e configurar exclusão
+    $('#confirmAction').off('click').on('click', function () {
+        // Fazer requisição DELETE para remover a FAQ
+        $.ajax({
+            url: `/faqs/${faqId}`, // Corrigido: aspas no URL
+            method: 'DELETE',
+            success: function () {
+                $('#confirmationModal').modal('hide'); // Fechar modal
+                showFlashMessage('FAQ excluída com sucesso!', 'success');
+                location.reload(); // Recarregar página para atualizar lista
+            },
+            error: function (xhr) {
+                console.error('Erro ao excluir FAQ:', xhr.responseText);
+                showFlashMessage('Erro ao excluir FAQ.', 'danger');
+            }
+        });
+    });
+};
+
+// Inicializar lista de FAQs ao carregar a página
+$(document).ready(function () {
+    let faqs = [];
+    let currentPage = 1;
+    const rowsPerPage = 5;
+
+    // Função para carregar FAQs do servidor
+    function loadFAQs() {
+        $.get('/faqs', function (data) {
+            faqs = data;
+            renderFAQs();
+        }).fail(function (xhr) {
+            console.error('Erro ao carregar FAQs:', xhr.responseText);
+            showFlashMessage('Erro ao carregar FAQs.', 'danger');
+        });
+    }
+
+    // Função para renderizar FAQs com paginação e busca
+    function renderFAQs() {
+        const searchQuery = $('#search-faq').val().toLowerCase();
+        const filteredFaqs = faqs.filter(faq =>
+            faq.question.toLowerCase().includes(searchQuery) ||
+            faq.answer.toLowerCase().includes(searchQuery)
+        );
+
+        const startIndex = (currentPage - 1) * rowsPerPage;
+        const paginatedFaqs = filteredFaqs.slice(startIndex, startIndex + rowsPerPage);
+
+        $('#faq-list').empty();
+
+        if (filteredFaqs.length === 0) {
+            $('#faq-table-container').hide();
+            $('#empty-state').show();
+        } else {
+            $('#faq-table-container').show();
+            $('#empty-state').hide();
+
+            paginatedFaqs.forEach(faq => {
+                $('#faq-list').append(`
+                    <tr>
+                        <td>${faq.question}</td>
+                        <td>${faq.answer.length > 50 ? faq.answer.substring(0, 50) + '...' : faq.answer}</td>
+                        <td class="text-center">
+                            <button class="btn btn-sm btn-info me-1" onclick="openEditModal(${faq.id}, '${faq.question.replace(/'/g, "\\'")}', '${faq.answer.replace(/'/g, "\\'")}')">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="confirmDeleteFAQ(${faq.id})">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `);
             });
+        }
 
-            window.confirmDeleteFAQ = function (faqId) {
-                $('#confirmationMessage').text("Tem certeza que deseja excluir esta FAQ?");
-                $('#confirmationModal').modal('show');
+        renderPagination(filteredFaqs.length);
+    }
 
-                $('#confirmAction').off('click').on('click', function () {
-                    $.ajax({
-                        url: `/faqs/${faqId}`,
-                        method: 'DELETE',
-                        success: function () {
-                            $('#confirmationModal').modal('hide');
-                            showFlashMessage('FAQ excluída com sucesso!', 'success');
-                            location.reload(); // Atualiza a página
-                            loadFAQs();
-                        },
-                        error: function () {
-                            showFlashMessage('Erro ao excluir FAQ.', 'danger');
-                        }
-                    });
-                });
-            };
-        });
+    // Função para renderizar paginação
+    function renderPagination(totalItems) {
+        const totalPages = Math.ceil(totalItems / rowsPerPage);
 
-        $('#addModal, #editModal, #confirmationModal').on('hidden.bs.modal', function () {
-            $('.modal-backdrop').remove(); // Remove o fundo opaco do modal
-            $('body').removeClass('modal-open'); // Remove a classe que impede a rolagem do fundo
-        });
+        $('#pagination').empty();
+        for (let i = 1; i <= totalPages; i++) {
+            $('#pagination').append(`
+                <li class="page-item ${i === currentPage ? 'active' : ''}">
+                    <button class="page-link" onclick="goToPage(${i})">${i}</button>
+                </li>
+            `);
+        }
+    }
 
-    </script>
+    // Função para mudar de página
+    window.goToPage = function (page) {
+        currentPage = page;
+        renderFAQs();
+    };
 
-<script>
-        $(document).ready(function () {
-            let faqs = [];
-            let currentPage = 1;
-            const rowsPerPage = 5;
+    // Função para busca
+    $('#search-faq').on('input', function () {
+        currentPage = 1;
+        renderFAQs();
+    });
 
-            function loadFAQs() {
-                $.get('/faqs', function (data) {
-                    $('#faq-list').empty();
-                    data.forEach(function (faq) {
-                        $('#faq-list').append(`
-                            <tr id="faq-${faq.id}">
-                                <td>${faq.question}</td>
-                                <td>${faq.answer}</td>
-                                <td class="text-center">
-                                    <button class="btn btn-sm btn-info me-1" onclick="openEditModal(${faq.id}, '${faq.question}', '${faq.answer}')">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-danger" onclick="confirmDeleteFAQ(${faq.id})">
-                                        <i class="fas fa-trash-alt"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                        `);
-                    });
-                });
-            }
+    // Inicializar FAQs ao carregar
+    loadFAQs();
+});
 
+// Função auxiliar para mostrar mensagens de flash
+function showFlashMessage(message, type) {
+    const flashMessage = `<div class="alert alert-${type} alert-dismissible fade show" role="alert">
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>`;
+    $('#flash-messages').html(flashMessage);
 
-            // Função para renderizar FAQs com paginação e busca
-            function renderFAQs() {
-                const searchQuery = $('#search-faq').val().toLowerCase();
-                const filteredFaqs = faqs.filter(faq =>
-                    faq.question.toLowerCase().includes(searchQuery) ||
-                    faq.answer.toLowerCase().includes(searchQuery)
-                );
+    // Remover mensagem após 5 segundos
+    setTimeout(() => {
+        $('.alert').alert('close');
+    }, 5000);
+}
 
-                const startIndex = (currentPage - 1) * rowsPerPage;
-                const paginatedFaqs = filteredFaqs.slice(startIndex, startIndex + rowsPerPage);
-
-                $('#faq-list').empty();
-
-                if (filteredFaqs.length === 0) {
-                    $('#faq-table-container').hide();
-                    $('#empty-state').show();
-                } else {
-                    $('#faq-table-container').show();
-                    $('#empty-state').hide();
-
-                    paginatedFaqs.forEach(faq => {
-                        $('#faq-list').append(`
-                            <tr>
-                                <td>${faq.question}</td>
-                                <td>${faq.answer.length > 50 ? faq.answer.substring(0, 50) + '...' : faq.answer}</td>
-                                <td class="text-center">
-                                    <button class="btn btn-sm btn-info me-1" onclick="openEditModal(${faq.id}, '${faq.question}', '${faq.answer}')">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-danger" onclick="confirmDeleteFAQ(${faq.id})">
-                                        <i class="fas fa-trash-alt"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                        `);
-                    });
-                }
-
-                renderPagination(filteredFaqs.length);
-            }
-
-            // Função para renderizar paginação
-            function renderPagination(totalItems) {
-                const totalPages = Math.ceil(totalItems / rowsPerPage);
-
-                $('#pagination').empty();
-                for (let i = 1; i <= totalPages; i++) {
-                    $('#pagination').append(`
-                        <li class="page-item ${i === currentPage ? 'active' : ''}">
-                            <button class="page-link" onclick="goToPage(${i})">${i}</button>
-                        </li>
-                    `);
-                }
-            }
-
-            // Função para mudar de página
-            window.goToPage = function (page) {
-                currentPage = page;
-                renderFAQs();
-            };
-
-            // Função para busca
-            $('#search-faq').on('input', function () {
-                currentPage = 1;
-                renderFAQs();
-            });
-
-            // Função para ordenação
-            window.sortTable = function (columnIndex) {
-                faqs.sort((a, b) => {
-                    const valA = Object.values(a)[columnIndex].toLowerCase();
-                    const valB = Object.values(b)[columnIndex].toLowerCase();
-                    return valA.localeCompare(valB);
-                });
-                renderFAQs();
-            };
-
-            // Carregar FAQs ao inicializar
-            loadFAQs();
-        });
     </script>
 {% endblock %}
