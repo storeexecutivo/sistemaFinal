@@ -12,6 +12,66 @@
     transition: transform 0.3s ease-in-out;
 }
 
+/* Estilo base para todas as barras de progresso circulares */
+.progress-circle {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 14px;
+    font-weight: bold;
+    position: relative;
+    margin: 0 auto; /* Centraliza a barra de progresso */
+}
+
+/* Círculo de seguidores */
+.followers-circle {
+    background: conic-gradient(
+        #007bff {{ new_facebook_followers_percentage }}%,  /* Azul para seguidores */
+        #e9ecef {{ new_facebook_followers_percentage }}%
+    );
+}
+
+/* Círculo de likes */
+.likes-circle {
+    background: conic-gradient(
+        #28a745 {{ new_facebook_likes_percentage }}%,  /* Verde para likes */
+        #e9ecef {{ new_facebook_likes_percentage }}%
+    );
+}
+
+/* Círculo de comentários */
+.comments-circle {
+    background: conic-gradient(
+        #dc3545 {{ new_facebook_comments_percentage }}%,  /* Vermelho para comentários */
+        #e9ecef {{ new_facebook_comments_percentage }}%
+    );
+}
+
+/* Círculo de compartilhamentos */
+.shares-circle {
+    background: conic-gradient(
+        #ffc107 {{ new_facebook_shares_percentage }}%,  /* Amarelo para compartilhamentos */
+        #e9ecef {{ new_facebook_shares_percentage }}%
+    );
+}
+
+.progress-circle::before {
+    content: "";
+    width: 45px;
+    height: 45px;
+    background-color: white;
+    border-radius: 50%;
+    position: absolute;
+}
+
+.progress-circle span {
+    position: relative;
+    z-index: 1;
+}
+
 .stat-card:hover {
     transform: scale(1.05);
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
@@ -41,18 +101,18 @@ button#downloadPDF:hover {
         <h1 class="fw-bold">Resumo de Engajamento</h1>
 
     <!-- Formulário para selecionar o tipo de meta -->
-    <form method="get" action="{{ url_for('engagement_report') }}">
-        <div class="form-group">
-            <label for="goal_type">Tipo de Meta</label>
-            <select id="goal_type" name="goal_type" class="form-control" onchange="this.form.submit()">
-                <option value="weekly" {% if selected_goal_type == 'weekly' %}selected{% endif %}>Semanal</option>
-                <option value="monthly" {% if selected_goal_type == 'monthly' %}selected{% endif %}>Mensal</option>
-                <option value="quarterly" {% if selected_goal_type == 'quarterly' %}selected{% endif %}>Trimestral</option>
-                <option value="semiannual" {% if selected_goal_type == 'semiannual' %}selected{% endif %}>Semestral</option>
-                <option value="annual" {% if selected_goal_type == 'annual' %}selected{% endif %}>Anual</option>
-            </select>
-        </div>
-    </form>
+<form method="get" action="{{ url_for('engagement_report') }}">
+    <div class="form-group" style="width: 150px;">
+        <label for="goal_type">Tipo de Meta</label>
+        <select id="goal_type" name="goal_type" class="form-control" onchange="this.form.submit()">
+          <option value="weekly" {% if selected_goal_type == weekly %}selected{% endif %}>Semanal</option>
+    <option value="monthly" {% if selected_goal_type == monthly %}selected{% endif %}>Mensal</option>
+    <option value="quarterly" {% if selected_goal_type == quarterly %}selected{% endif %}>Trimestral</option>
+    <option value="semiannual" {% if selected_goal_type == semiannual %}selected{% endif %}>Semestral</option>
+    <option value="annual" {% if selected_goal_type == annual %}selected{% endif %}>Anual</option>
+        </select>
+    </div>
+</form>
 
 
 
@@ -61,56 +121,68 @@ button#downloadPDF:hover {
     <!-- Estatísticas -->
    <div class="row g-4">
     <!-- Card: Novos Seguidores -->
-    <div class="col-md-3">
-        <div class="card stat-card text-center shadow-sm">
-            <div class="card-body">
-                <i class="fas fa-user-plus fa-3x text-primary mb-3"></i>
-                <h5 class="card-title">Novos Seguidores</h5>
-                <p>Facebook: <strong>{{ new_facebook_followers }}</strong></p>
-                <p>Instagram: <strong>{{ new_instagram_followers }}</strong></p>
-                <p class="text-muted">Alcançado: <strong>{{ new_facebook_followers_percentage }}%</strong></p>
+<!-- Card: Novos Seguidores -->
+<div class="col-md-3">
+    <div class="card stat-card text-center shadow-sm">
+        <div class="card-body">
+            <i class="fas fa-user-plus fa-3x text-primary mb-3"></i>
+            <h5 class="card-title">Novos Seguidores</h5>
+            <p>Facebook: <strong>{{ new_facebook_followers }}</strong></p>
+            <p>Instagram: <strong>{{ new_instagram_followers }}</strong></p>
+            <div class="progress-circle followers-circle">
+                <span>{{ new_facebook_followers_percentage }}%</span>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Card: Novos Likes -->
-    <div class="col-md-3">
-        <div class="card stat-card text-center shadow-sm">
-            <div class="card-body">
-                <i class="fas fa-thumbs-up fa-3x text-success mb-3"></i>
-                <h5 class="card-title">Novos Likes</h5>
-                <p>Facebook: <strong>{{ new_facebook_likes }}</strong></p>
-                <p>Instagram: <strong>{{ new_instagram_likes }}</strong></p>
-                <p class="text-muted">Alcançado: <strong>{{ new_facebook_likes_percentage }}%</strong></p>
+<!-- Card: Novos Likes -->
+<div class="col-md-3">
+    <div class="card stat-card text-center shadow-sm">
+        <div class="card-body">
+            <i class="fas fa-thumbs-up fa-3x text-success mb-3"></i>
+            <h5 class="card-title">Novos Likes</h5>
+            <p>Facebook: <strong>{{ new_facebook_likes }}</strong></p>
+            <p>Instagram: <strong>{{ new_instagram_likes }}</strong></p>
+            <div class="progress-circle likes-circle">
+                <span>{{ new_facebook_likes_percentage }}%</span>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Card: Novos Comentários -->
-    <div class="col-md-3">
-        <div class="card stat-card text-center shadow-sm">
-            <div class="card-body">
-                <i class="fas fa-comments fa-3x text-danger mb-3"></i>
-                <h5 class="card-title">Novos Comentários</h5>
-                <p>Facebook: <strong>{{ new_facebook_comments }}</strong></p>
-                <p>Instagram: <strong>{{ new_instagram_comments }}</strong></p>
-                <p class="text-muted">Alcançado: <strong>{{ new_facebook_comments_percentage }}%</strong></p>
+<!-- Card: Novos Comentários -->
+<div class="col-md-3">
+    <div class="card stat-card text-center shadow-sm">
+        <div class="card-body">
+            <i class="fas fa-comments fa-3x text-danger mb-3"></i>
+            <h5 class="card-title">Novos Comentários</h5>
+            <p>Facebook: <strong>{{ new_facebook_comments }}</strong></p>
+            <p>Instagram: <strong>{{ new_instagram_comments }}</strong></p>
+            <div class="progress-circle comments-circle">
+                <span>{{ new_facebook_comments_percentage }}%</span>
             </div>
-        </div>
-    </div>
 
-    <!-- Card: Novos Compartilhamentos -->
-    <div class="col-md-3">
-        <div class="card stat-card text-center shadow-sm">
-            <div class="card-body">
-                <i class="fas fa-share fa-3x text-warning mb-3"></i>
-                <h5 class="card-title">Compartilhamentos</h5>
-                <p>Facebook: <strong>{{ new_facebook_shares }}</strong></p>
-                <p>Instagram: <strong>{{ new_instagram_shares }} (N/A)</strong></p>
-                <p class="text-muted">Alcançado: <strong>{{ new_facebook_shares_percentage }}%</strong></p>
-            </div>
         </div>
     </div>
+</div>
+
+<!-- Card: Novos Compartilhamentos -->
+<div class="col-md-3">
+    <div class="card stat-card text-center shadow-sm">
+        <div class="card-body">
+            <i class="fas fa-share fa-3x text-warning mb-3"></i>
+            <h5 class="card-title">Compartilhamentos</h5>
+            <p>Facebook: <strong>{{ new_facebook_shares }}</strong></p>
+            <p>Instagram: <strong>{{ new_instagram_shares }} (N/A)</strong></p>
+            <div class="progress-circle shares-circle">
+                <span>{{ new_facebook_shares_percentage }}%</span>
+            </div>
+
+        </div>
+    </div>
+</div>
+
 </div>
 
 

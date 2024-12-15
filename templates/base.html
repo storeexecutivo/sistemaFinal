@@ -3,11 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Electro Zone - Dashboard</title>
+    <title>Electro Zone</title>
     <!-- Bootstrap CSS -->
      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="icon" href="{{ url_for('static', filename='uploads/favicon.png') }}" type="image/png">
+
 
      <style>
         /* Body Styling */
@@ -240,41 +242,7 @@
     </style>
 </head>
 <body>
-   
-    <header class="py-3 bg-dark">
-    <div class="container d-flex align-items-center justify-content-between">
-        <h1><i class="bi bi-lightning-fill"></i> Electro Zone</h1>
-        <nav class="cledner">
-            <a href="/" class="text-white mx-3">Home</a>
-             {% if current_user.is_authenticated and current_user.role == 'Admin' %}
-        <a href="/engagement_report" class="text-white mx-3">Análise</a>
-    {% endif %}
-            <a href="/scheduled_posts" class="text-white mx-3">Agendamentos</a>
-        </nav>
-        <!-- Ícone com Dropdown -->
-        <div class="dropdown">
-    <a
-        class="text-white d-flex align-items-center text-decoration-none dropdown-toggle"
-        href="#"
-        role="button"
-        id="userMenu"
-        data-bs-toggle="dropdown"
-        aria-expanded="false"
-    >
-        <i class="bi bi-person-circle fs-4"></i>
-    </a>
-    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenu">
-        <!-- Exibe o nome do usuário -->
-        <li class="dropdown-item-text fw-bold text-secondary">
-            {{ current_user.nome }}
-        </li>
-        <li><hr class="dropdown-divider"></li>
-        <!-- Opções -->
-         <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#profileModal">Perfil</a></li>
-        <li><a class="dropdown-item" href="/usuarios/redefinir-senha">Alterar Senha</a></li>
-        <li><a class="dropdown-item text-danger" href="/logout">Logout</a></li>
-    </ul>
-</div>
+
 <!-- Modal de Perfil -->
 <div class="modal fade" id="profileModal" tabindex="-1" aria-labelledby="profileModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-lg">
@@ -326,49 +294,89 @@
 
     </div>
 </header>
+<header class="py-3 bg-dark">
+    <div class="container d-flex align-items-center justify-content-between">
+        <h1><img src="{{ url_for('static', filename='uploads/logo.png') }}" alt="Electro Zone Logo" class="img-fluid" style="max-width: 150px;"></h1>
+        <nav class="d-none d-md-flex align-items-center">
+            <a href="/" class="text-white mx-3">Home</a>
+            {% if current_user.is_authenticated and current_user.role == 'Administrador' %}
+                <a href="/engagement_report" class="text-white mx-3">Análise</a>
+            {% endif %}
+            <a href="/scheduled_posts" class="text-white mx-3">Agendamentos</a>
+        </nav>
+        <div class="dropdown">
+            <a class="text-white d-flex align-items-center text-decoration-none dropdown-toggle" href="#" role="button" id="userMenu" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-person-circle fs-4"></i>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenu">
+                <li class="dropdown-item-text fw-bold text-secondary">{{ current_user.nome }}</li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#profileModal">Perfil</a></li>
+                <li><a class="dropdown-item" href="/usuarios/redefinir-senha">Alterar Senha</a></li>
+                <li><a class="dropdown-item text-danger" href="/logout">Logout</a></li>
+            </ul>
+        </div>
+    </div>
+</header>
 
-    <div class="d-flex">
-        <aside class="sidebar">
-            <ul class="nav flex-column">
+<div class="d-flex">
+    <aside class="sidebar d-none d-lg-block bg-light">
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a href="/" class="nav-link"><i class="bi bi-house-fill"></i> Dashboard</a>
+            </li>
+            <li class="nav-item">
+                <a href="/posts" class="nav-link"><i class="bi bi-file-earmark-text-fill"></i> Posts</a>
+            </li>
+            <li class="nav-item">
+                <a href="/get_messages" class="nav-link"><i class="bi bi-chat-dots-fill"></i> Mensagens</a>
+            </li>
+            {% if current_user.is_authenticated and current_user.role == 'Administrador' %}
                 <li class="nav-item">
-                    <a href="/" class="nav-link"><i class="bi bi-house-fill"></i> Dashboard</a>
-                </li>
-                <li class="nav-item">
-                    <a href="/posts" class="nav-link"><i class="bi bi-file-earmark-text-fill"></i> Posts</a>
-                </li>
-                <li class="nav-item">
-                    <a href="/get_messages" class="nav-link"><i class="bi bi-chat-dots-fill"></i> Mensagens</a>
-                </li>
-                 {% if current_user.is_authenticated and current_user.role == 'Admin' %}
-          <li class="nav-item">
                     <a href="/campanhas" class="nav-link"><i class="bi bi-megaphone-fill"></i> Campanhas</a>
                 </li>
-    {% endif %}
-              {% if current_user.is_authenticated and current_user.role == 'Admin' %}
-           <li class="nav-item">
+                <li class="nav-item">
                     <a href="/engagement_report" class="nav-link"><i class="bi bi-graph-up-arrow"></i> Relatórios</a>
                 </li>
-    {% endif %}
-                {% if current_user.is_authenticated and current_user.role == 'Admin' %}
-                 <li class="nav-item dropdown">
+                <li class="nav-item dropdown">
                     <a href="#" class="nav-link dropdown-toggle" id="configDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="bi bi-gear-fill"></i> Configurações
                     </a>
-                    <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-3 custom-dropdown" aria-labelledby="configDropdown">
+                    <ul class="dropdown-menu shadow-lg border-0 rounded-3" aria-labelledby="configDropdown">
                         <li><a href="/fqs" class="dropdown-item"><i class="bi bi-question-circle-fill"></i> FQS</a></li>
                         <li><a href="/usuarios" class="dropdown-item"><i class="bi bi-people-fill"></i> Usuários</a></li>
                         <li><a href="/logs" class="dropdown-item"><i class="bi bi-shield-fill-check"></i> Privacidade</a></li>
                         <li><a href="/set_goal" class="dropdown-item"><i class="bi bi-flag-fill"></i> Metas</a></li>
-
                     </ul>
                 </li>
-                {% endif %}
-            </ul>
-        </aside>
-        <main class="container.mt-5 flex-grow-1">
+            {% endif %}
+        </ul>
+    </aside>
+
+<main class="container.mt-5 flex-grow-1">
             {% block content %}{% endblock %}
         </main>
+
+</div>
+
+<!-- Mobile Navigation for Smaller Screens -->
+<nav class="navbar navbar-dark bg-dark d-md-none">
+    <div class="container-fluid">
+        <a href="/" class="navbar-brand">Home</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMobile" aria-controls="navbarMobile" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarMobile">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item"><a href="/scheduled_posts" class="nav-link">Agendamentos</a></li>
+                {% if current_user.is_authenticated and current_user.role == 'Administrador' %}
+                    <li class="nav-item"><a href="/engagement_report" class="nav-link">Análise</a></li>
+                {% endif %}
+            </ul>
+        </div>
     </div>
+</nav>
+
 
 
      <!-- Botão Flutuante -->

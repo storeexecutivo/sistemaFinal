@@ -7,6 +7,11 @@ import requests
 from datetime import timedelta, timezone
 from flask import abort
 import os
+from flask import request, jsonify, render_template
+from flask_login import login_required
+from datetime import datetime, timedelta
+from sqlalchemy.orm import joinedload
+
 from werkzeug.security import generate_password_hash, check_password_hash
 # Banco de dados (no arquivo principal)
 from datetime import datetime
@@ -213,7 +218,7 @@ def criar_usuario_inicial():
 def admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if not current_user.is_authenticated or current_user.role != 'Admin':
+        if not current_user.is_authenticated or current_user.role != 'Administrador':
             # Retorna erro 403 (Acesso Proibido) se o usuário não for admin
             abort(403)
         return f(*args, **kwargs)
@@ -252,30 +257,29 @@ def logout():
     return redirect(url_for('login'))
 
 
+
+VERIFY_TOKEN = ACCESS_TOKEN
+
 @app.route('/webhook', methods=['GET', 'POST'])
 def webhook():
     if request.method == 'GET':
-        # Verificação do Facebook para garantir que o webhook é válido
-        verify_token = '701517828f08f86f2fcba2e79ed9583f'
-        mode = request.args.get('hub.mode')
-        token = request.args.get('hub.verify_token')
-        challenge = request.args.get('hub.challenge')
+        # Verificação do Webhook
+        mode = request.args.get("hub.mode")
+        token = request.args.get("hub.verify_token")
+        challenge = request.args.get("hub.challenge")
 
-        if mode == 'subscribe' and token == verify_token:
+        if mode == "subscribe" and token == VERIFY_TOKEN:
             print("Webhook verificado com sucesso!")
             return challenge, 200
         else:
-            return 'Token inválido!', 403
+            return "Falha na verificação do webhook.", 403
 
     elif request.method == 'POST':
-        # Processar notificações recebidas
-        data = request.json
-        print("Notificação recebida:", data)
+        # Receber notificações do Messenger
+        data = request.get_json()
+        print("Recebendo evento:", data)
+        return "EVENT_RECEIVED", 200
 
-        # Aqui você pode exibir ou salvar a notificação em um banco de dados
-        return 'EVENT_RECEIVED', 200
-    else:
-        return 'Método não permitido!', 405
 
 def post_scheduled_posts():
     with app.app_context():
@@ -324,44 +328,52 @@ def listar_logs():
     start_date = request.args.get('start_date')
     end_date = request.args.get('end_date')
     user_id = request.args.get('user')
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 20, type=int)  # Padrão: 20 logs por página
 
-    # Query base
-    query = UserLog.query
+    # Query base otimizada
+    query = UserLog.query.options(joinedload(UserLog.user))
 
-    # Filtro por data inicial
-    if start_date:
-        try:
+    try:
+        # Filtro por data inicial
+        if start_date:
             start_date = datetime.strptime(start_date, '%Y-%m-%d')
             query = query.filter(UserLog.timestamp >= start_date)
-        except ValueError:
-            pass  # Lida com erros de conversão de data
 
-    # Filtro por data final
-    if end_date:
-        try:
-            end_date = datetime.strptime(end_date, '%Y-%m-%d') + timedelta(days=1)  # Inclui o último dia completo
+        # Filtro por data final
+        if end_date:
+            end_date = datetime.strptime(end_date, '%Y-%m-%d') + timedelta(days=1)
             query = query.filter(UserLog.timestamp < end_date)
-        except ValueError:
-            pass  # Lida com erros de conversão de data
+
+    except ValueError as e:
+        return jsonify({"error": "Formato de data inválido. Use YYYY-MM-DD."}), 400
 
     # Filtro por usuário
     if user_id:
         query = query.filter(UserLog.user_id == user_id)
 
-    # Ordena por timestamp decrescente
-    logs = query.order_by(UserLog.timestamp.desc()).all()
+    # Ordena por timestamp decrescente e aplica paginação
+    pagination = query.order_by(UserLog.timestamp.desc()).paginate(page=page, per_page=per_page, error_out=False)
+    logs = pagination.items
 
-    # Pega todos os usuários para preencher o dropdown
-    users = User.query.all()
+    # Pega todos os usuários para o dropdown, carregando apenas IDs e nomes
+    users = User.query.with_entities(User.id, User.nome).all()
 
-    # Verifica se a requisição é AJAX
+    # Se AJAX, retorna apenas o fragmento necessário
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        return render_template('logs.html', logs=logs, str=str, users=users, timedelta=timedelta)
+        response = render_template('partials/logs_table.html', logs=logs, str=str, timedelta=timedelta)
+        return jsonify({"html": response, "has_next": pagination.has_next, "has_prev": pagination.has_prev}), 200
 
-    # Caso contrário, renderize a página completa
-    return render_template('logs.html', logs=logs,str=str, users=users, timedelta=timedelta)
-
-
+    # Caso contrário, renderiza a página completa
+    return render_template(
+        'logs.html',
+        logs=logs,
+        str=str,
+        users=users,
+        timedelta=timedelta,
+        pagination=pagination,
+        datetime=datetime,  # Adiciona `datetime` ao contexto do template
+    )
 
 # Rota para listar todos os usuários
 @app.route('/usuarios', methods=['GET'])
@@ -730,7 +742,34 @@ def engagement_report():
     now = datetime.now().date()
 
     # Captura o tipo de meta do formulário (valor padrão é 'weekly')
+
+    # Obtém o tipo de objetivo selecionado
+    # Obtém o tipo de objetivo selecionado
     selected_goal_type = request.args.get('goal_type', 'weekly')
+
+    # Converte o tipo de objetivo em número de dias
+    goal_type_days = {
+        'weekly': 7,
+        'monthly': 30,
+        'quarterly': 90,
+        'semiannual': 182,  # Aproximadamente 6 meses
+        'annual': 365
+    }
+
+    # Número de dias para o tipo selecionado
+    days_for_goal_type = goal_type_days.get(selected_goal_type, 7)  # Default para 7 dias (weekly)
+
+    # Define a data mínima com base no número de dias do objetivo selecionado
+    if selected_goal_type == 'monthly':
+        # Ajusta para o primeiro dia do mês atual
+        min_date = now.replace(day=1)
+    else:
+        min_date = (datetime.now() - timedelta(days=days_for_goal_type)).date()
+
+    print(f"Goal Type: {selected_goal_type}")
+    print(f"Days for Goal Type: {days_for_goal_type}")
+    print(f"Min Date: {min_date}")
+
 
     # Verificar se metas foram definidas para a semana atual
     current_week_start = now - timedelta(days=now.weekday())
@@ -924,7 +963,7 @@ def engagement_report():
 
         # Calcula a data mínima (5 dias atrás)
 
-        min_date = (datetime.now() - timedelta(days=30)).date()
+
 
         try:
             # Facebook - Likes e Comentários
@@ -1032,12 +1071,15 @@ def engagement_report():
             total_commentss=instagram_comments + facebook_comments,
             total_sharess=facebook_shares + instagram_shares,
             facebook_shares=facebook_shares,
-            new_facebook_followers_percentage=calculate_percentage(new_facebook_followers, current_goal.followers_goal),
-        new_facebook_likes_percentage = calculate_percentage(new_facebook_likes, current_goal.likes_goal),
-        new_facebook_comments_percentage = calculate_percentage(new_facebook_comments, current_goal.comments_goal),
+            new_facebook_followers_percentage=calculate_percentage((new_facebook_followers + new_instagram_followers), current_goal.followers_goal),
+        new_facebook_likes_percentage = calculate_percentage((new_facebook_likes+ new_instagram_likes), current_goal.likes_goal),
+        new_facebook_comments_percentage = calculate_percentage((new_facebook_comments+new_instagram_comments), current_goal.comments_goal),
         new_facebook_shares_percentage = calculate_percentage(new_facebook_shares, current_goal.shares_goal),
             instagram_shares=instagram_shares
         )
+
+
+
 
     except Exception as e:
         # Registrar erro no dashboard
@@ -1048,6 +1090,7 @@ def engagement_report():
         )
         flash("Erro ao carregar o dashboard. Tente novamente.", "danger")
         return redirect(url_for('engagement_report'))  # Redireciona para a mesma página em caso de erro
+
 # Definindo a rota para o dashboard
 # Rota para o dashboard
 @app.route('/')
@@ -1881,36 +1924,103 @@ def fqs():
 # Define perguntas frequentes e respostas automáticas
 @app.route('/faqs', methods=['GET'])
 def get_faqs():
-    faqs = FAQ.query.all()
+    faqs = FAQ.query.order_by(FAQ.question.desc()).all()
     return jsonify([{"id": faq.id, "question": faq.question, "answer": faq.answer} for faq in faqs])
 
 @app.route('/faqs', methods=['POST'])
 def add_faq():
     data = request.json
-    question = data.get('question')
-    answer = data.get('answer')
-    if not question or not answer:
-        return jsonify({"error": "Question and answer are required"}), 400
-    new_faq = FAQ(question=question, answer=answer)
-    db.session.add(new_faq)
-    db.session.commit()
-    return jsonify({"id": new_faq.id, "message": "FAQ added successfully"}), 201
+    question = data.get('question', '').strip()
+    answer = data.get('answer', '').strip()
+
+    # Validação básica
+    errors = []
+    if not question:
+        errors.append("A pergunta é obrigatória.")
+    if not answer:
+        errors.append("A resposta é obrigatória.")
+    if len(question) > 255:
+        errors.append("A pergunta não pode exceder 255 caracteres.")
+    if len(answer) > 1000:
+        errors.append("A resposta não pode exceder 1000 caracteres.")
+
+    # Verificar duplicatas
+    existing_faq = FAQ.query.filter_by(question=question).first()
+    if existing_faq:
+        errors.append("Já existe uma FAQ com esta pergunta.")
+
+    if errors:
+        flash(' '.join(errors), 'danger')  # Mensagens de erro exibidas como flash no servidor
+        return jsonify({"errors": errors}), 400
+
+    # Criar e salvar o FAQ
+    try:
+        new_faq = FAQ(question=question, answer=answer)
+        db.session.add(new_faq)
+        db.session.commit()
+        flash("FAQ adicionada com sucesso!", "success")
+        return jsonify({"id": new_faq.id, "message": "FAQ adicionada com sucesso"}), 201
+    except Exception as e:
+        db.session.rollback()
+        flash("Erro ao salvar no banco de dados. Tente novamente.", "danger")
+        return jsonify({"error": "Erro no servidor. Tente novamente."}), 500
+
 
 @app.route('/faqs/<int:faq_id>', methods=['PUT'])
 def update_faq(faq_id):
     faq = FAQ.query.get_or_404(faq_id)
     data = request.json
-    faq.question = data.get('question', faq.question)
-    faq.answer = data.get('answer', faq.answer)
-    db.session.commit()
-    return jsonify({"message": "FAQ updated successfully"})
+
+    question = data.get('question', '').strip()
+    answer = data.get('answer', '').strip()
+
+    # Validação
+    errors = []
+
+    # Verificar se a pergunta já existe no banco de dados
+    existing_faq = FAQ.query.filter(FAQ.question == question, FAQ.id != faq_id).first()
+    if existing_faq:
+        errors.append("Já existe uma FAQ com esta pergunta.")
+
+    if not question:
+        errors.append("A pergunta é obrigatória.")
+    if not answer:
+        errors.append("A resposta é obrigatória.")
+    if len(question) > 255:
+        errors.append("A pergunta não pode exceder 255 caracteres.")
+    if len(answer) > 1000:
+        errors.append("A resposta não pode exceder 1000 caracteres.")
+
+    if errors:
+        flash(' '.join(errors), 'danger')  # Exibindo mensagens de erro no front-end
+        return jsonify({"errors": errors}), 400
+
+    # Atualizando FAQ
+    try:
+        faq.question = question
+        faq.answer = answer
+        db.session.commit()
+        flash("FAQ atualizada com sucesso!", "success")  # Mensagem de sucesso
+        return jsonify({"message": "FAQ updated successfully"})
+    except Exception as e:
+        db.session.rollback()
+        flash("Erro ao atualizar a FAQ. Tente novamente.", "danger")  # Mensagem de erro genérica
+        return jsonify({"error": "Erro no servidor. Tente novamente."}), 500
+
 
 @app.route('/faqs/<int:faq_id>', methods=['DELETE'])
 def delete_faq(faq_id):
     faq = FAQ.query.get_or_404(faq_id)
-    db.session.delete(faq)
-    db.session.commit()
-    return jsonify({"message": "FAQ deleted successfully"})
+
+    try:
+        db.session.delete(faq)
+        db.session.commit()
+        flash("FAQ excluída com sucesso!", "success")  # Mensagem de sucesso
+        return jsonify({"message": "FAQ deleted successfully"})
+    except Exception as e:
+        db.session.rollback()
+        flash("Erro ao excluir a FAQ. Tente novamente.", "danger")  # Mensagem de erro
+        return jsonify({"error": "Erro ao excluir FAQ. Tente novamente."}), 500
 
 
 def auto_reply(comment_text):
@@ -2927,9 +3037,18 @@ def set_goal():
         db.session.add(goal)
         db.session.commit()
         flash("Meta definida com sucesso!", "success")
-        return redirect(url_for('engagement_report'))
+        return redirect(url_for('set_goal'))
 
     return render_template('set_goal.html')
+
+
+@app.route('/set_goal', methods=['GET'])
+def get_goals():
+    # Recupera todas as metas do banco de dados
+    goals = Goal.query.all()
+
+    # Renderiza o template HTML e passa as metas para ele
+    return render_template('set_goal.html', goals=goals)
 
 
 if __name__ == '__main__':

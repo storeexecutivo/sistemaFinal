@@ -1,41 +1,98 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<form method="POST" class="mt-5">
-    <div class="mb-3">
-        <label for="goal_type" class="form-label">Tipo de Meta</label>
-        <select name="goal_type" class="form-control" required>
-            <option value="weekly">Semanal</option>
-            <option value="monthly">Mensal</option>
-            <option value="quarterly">Trimestral</option>
-            <option value="semiannual">Semestral</option>
-            <option value="annual">Anual</option>
-        </select>
+<!-- Botão para abrir o modal -->
+<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#goalModal">
+  Definir Meta
+</button>
+
+<h1>Lista de Metas</h1>
+<h2>Lista de Metas</h2>
+
+ <div class="container mt-5">
+        <h1 class="mb-4">Metas</h1>
+
+        <!-- Verifica se existem metas e exibe uma tabela -->
+        {% if goals %}
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Tipo</th>
+                        <th>Período</th>
+                        <th>Likes</th>
+                        <th>Comentários</th>
+                        <th>Compartilhamentos</th>
+                        <th>Seguidores</th>
+                        <th>Criado em</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for goal in goals %}
+                        <tr>
+                            <td>{{ goal.id }}</td>
+                            <td>{{ goal.goal_type }}</td>
+                            <td>{{ goal.period_start }} - {{ goal.period_end }}</td>
+                            <td>{{ goal.likes_goal }}</td>
+                            <td>{{ goal.comments_goal }}</td>
+                            <td>{{ goal.shares_goal }}</td>
+                            <td>{{ goal.followers_goal }}</td>
+                            <td>{{ goal.created_at }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>Não há metas cadastradas.</p>
+        {% endif %}
     </div>
 
-    <div class="mb-3">
-        <label for="likes_goal" class="form-label">Meta de Likes</label>
-        <input type="number" name="likes_goal" class="form-control" required>
+<!-- Modal -->
+<div class="modal fade" id="goalModal" tabindex="-1" aria-labelledby="goalModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="goalModalLabel">Definir Meta</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form method="POST">
+          <div class="mb-3">
+            <label for="goal_type" class="form-label">Tipo de Meta</label>
+            <select name="goal_type" class="form-control" required>
+              <option value="weekly">Semanal</option>
+              <option value="monthly">Mensal</option>
+              <option value="quarterly">Trimestral</option>
+              <option value="semiannual">Semestral</option>
+              <option value="annual">Anual</option>
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label for="likes_goal" class="form-label">Meta de Likes</label>
+            <input type="number" name="likes_goal" class="form-control" required>
+          </div>
+
+          <div class="mb-3">
+            <label for="comments_goal" class="form-label">Meta de Comentários</label>
+            <input type="number" name="comments_goal" class="form-control" required>
+          </div>
+
+          <div class="mb-3">
+            <label for="shares_goal" class="form-label">Meta de Compartilhamentos</label>
+            <input type="number" name="shares_goal" class="form-control" required>
+          </div>
+
+          <div class="mb-3">
+            <label for="followers_goal" class="form-label">Meta de Seguidores</label>
+            <input type="number" name="followers_goal" class="form-control" required>
+          </div>
+
+          <button type="submit" class="btn btn-primary">Definir Meta</button>
+        </form>
+      </div>
     </div>
-
-    <div class="mb-3">
-        <label for="comments_goal" class="form-label">Meta de Comentários</label>
-        <input type="number" name="comments_goal" class="form-control" required>
-    </div>
-
-    <div class="mb-3">
-        <label for="shares_goal" class="form-label">Meta de Compartilhamentos</label>
-        <input type="number" name="shares_goal" class="form-control" required>
-    </div>
-
-    <div class="mb-3">
-        <label for="followers_goal" class="form-label">Meta de Seguidores</label>
-        <input type="number" name="followers_goal" class="form-control" required>
-    </div>
-
-    <button type="submit" class="btn btn-primary">Definir Meta</button>
-</form>
-
-
+  </div>
+</div>
 
 {% endblock %}
