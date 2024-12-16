@@ -58,17 +58,13 @@
                         {% endif %}
                     </td>
                     <td>
-                        <button class="btn btn-sm btn-primary" data-bs-toggle="modal"
-                                data-bs-target="#editModal"
-                                data-id="{{ post.id }}"
-                                data-name="{{ post.name }}"
-                                data-message="{{ post.message }}"
-                                data-scheduled_time="{{ post.scheduled_time.strftime('%Y-%m-%dT%H:%M') }}">
-                            Editar
-                        </button>
-                        {% if post.status != "CANCELLED" %}
-                        <a href="{{ url_for('cancel_post', post_id=post.id) }}" class="btn btn-sm btn-danger">Cancelar</a>
-                        {% endif %}
+
+                        {% if post.status == "POSTED" %}
+    <!-- Não exibe o botão -->
+{% elif post.status != "CANCELLED" %}
+    <a href="{{ url_for('cancel_post', post_id=post.id) }}" class="btn btn-sm btn-danger">Cancelar</a>
+{% endif %}
+
                     </td>
                 </tr>
                 {% else %}
@@ -85,7 +81,7 @@
 <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form id="editForm" method="post" action="edit_posts">
+            <form id="editForm" method="post" action="edit_postsss">
                 <div class="modal-header">
                     <h5 class="modal-title" id="editModalLabel">Editar Post</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>

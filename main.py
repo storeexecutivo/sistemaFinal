@@ -2607,6 +2607,8 @@ def edit_post(post_id):
         return {'error': str(e)}, 500
 
 
+
+
 @app.route('/edit_posts', methods=['POST'])
 def edit_posts():
     try:
@@ -3185,6 +3187,42 @@ def cled():
 
     except facebook.GraphAPIError as e:
         return f"Erro ao acessar dados: {str(e)}", 500
+
+
+import pywhatkit as kit
+
+@app.route('/luis')
+def luis():
+    return render_template('posts.html')
+
+import pandas  as pd
+# Rota para enviar mensagem
+@app.route('/send_message', methods=['POST'])
+def send_message():
+    try:
+        # Recebendo o arquivo Excel do frontend
+        file = request.files['file']
+        mensagem = request.form['mensagem']
+
+        # Lendo os números do arquivo Excel
+        df = pd.read_excel(file)
+        if 'numero' not in df.columns:
+            return jsonify({'status': 'error', 'message': 'Arquivo Excel deve conter uma coluna chamada "numero".'})
+
+        numeros = df['numero'].dropna().astype(str).tolist()
+        resultados = []
+
+        # Enviando mensagens
+        for numero in numeros:
+            try:
+                kit.sendwhatmsg_instantly(numero, mensagem)
+                resultados.append({'numero': numero, 'status': 'sucesso'})
+            except Exception as e:
+                resultados.append({'numero': numero, 'status': f'erro: {str(e)}'})
+
+        return jsonify({'status': 'success', 'results': resultados})
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)})
 
 
 if __name__ == '__main__':

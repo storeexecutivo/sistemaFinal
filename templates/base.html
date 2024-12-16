@@ -14,6 +14,97 @@
      <style>
         /* Body Styling */
 
+         /* Modal Styles */
+        .custom-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .custom-modal-content {
+            background: #fff;
+            padding: 20px;
+            width: 90%;
+            max-width: 500px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            position: relative;
+            text-align: center;
+        }
+
+        .custom-modal-close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 20px;
+            color: #555;
+            cursor: pointer;
+        }
+
+        .custom-modal h2 {
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            color: #333;
+        }
+
+        .custom-form {
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .custom-form label {
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .custom-form input[type="file"],
+        .custom-form textarea {
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 1em;
+            width: 100%;
+        }
+
+        .custom-form button {
+            padding: 10px;
+            font-size: 1em;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .custom-form button[type="submit"] {
+            background-color: #25D366;
+            color: #fff;
+        }
+
+        .custom-form button[type="submit"]:hover {
+            background-color: #1da851;
+        }
+
+        .custom-form button[type="button"] {
+            background-color: #e74c3c;
+            color: #fff;
+            margin-top: 10px;
+        }
+
+        .custom-form button[type="button"]:hover {
+            background-color: #c0392b;
+        }
+
+
         /* Hover effect */
         .hover-bg-light:hover {
             background-color: #f1f1f1 !important;
@@ -433,6 +524,80 @@
 
 
 
+<script>
+    function openModal() {
+        document.getElementById('custom-modal').style.display = 'flex';
+    }
+
+    function closeModal() {
+        document.getElementById('custom-modal').style.display = 'none';
+    }
+
+    async function sendMessage() {
+        const fileInput = document.getElementById('custom-file');
+        const mensagem = document.getElementById('custom-mensagem').value;
+
+        if (!fileInput.files[0]) {
+            alert("Por favor, selecione um arquivo Excel.");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('file', fileInput.files[0]);
+        formData.append('mensagem', mensagem);
+
+        try {
+            const response = await fetch('/send_message', {
+                method: 'POST',
+                body: formData,
+            });
+
+            const result = await response.json();
+            if (result.status === 'success') {
+                let output = "Resultados:\n";
+                result.results.forEach(res => {
+                    output += `Número: ${res.numero} - Status: ${res.status}\n`;
+                });
+                alert(output);
+            } else {
+                alert('Erro: ' + result.message);
+            }
+        } catch (error) {
+            alert('Erro ao enviar mensagem: ' + error);
+        }
+    }
+
+    window.onclick = function(event) {
+        const modal = document.getElementById('custom-modal');
+        if (event.target === modal) {
+            closeModal();
+        }
+    }
+</script>
+
+<!-- Modal -->
+<div id="custom-modal" class="custom-modal">
+    <div class="custom-modal-content">
+        <span class="custom-modal-close" onclick="closeModal()">&times;</span>
+        <h2>Enviar Mensagem</h2>
+        <form class="custom-form" onsubmit="event.preventDefault(); sendMessage();">
+            <label for="custom-file">Arquivo Excel (.xlsx) com números:</label>
+            <input type="file" id="custom-file" accept=".xlsx" required>
+
+            <label for="custom-mensagem">Mensagem:</label>
+            <textarea id="custom-mensagem" rows="5" required></textarea>
+
+            <button type="submit">
+                <i class="bi bi-whatsapp"></i> Enviar
+            </button>
+            <button type="button" onclick="closeModal()">
+                <i class="bi bi-x-circle"></i> Cancelar
+            </button>
+        </form>
+    </div>
+</div>
+
+
      <!-- Botão Flutuante -->
     <div class="floating-btn">
         <button id="main-btn" class="btn btn-primary shadow-lg rounded-circle">
@@ -445,6 +610,11 @@
             <button id="schedule-Post-btn" class="btn sub-btn btn-light rounded-circle shadow" title="Agendar Post">
                 <i class="bi bi-calendar-plus-fill"></i>
             </button>
+  <!-- Abrir Modal -->
+<!-- Abrir Modal com cores -->
+<button onclick="openModal()" class="btn btn-success">
+  <i class="bi bi-whatsapp text-white"></i>
+</button>
 
 <script>
     document.getElementById('messages-btn').addEventListener('click', function () {
@@ -621,13 +791,7 @@
         </label>
     </div>
 
-    <!-- WhatsApp -->
-    <div>
-        <input type="checkbox" class="btn-check" id="whatsappCheck" name="platforms" value="whatsapp" autocomplete="off">
-        <label class="btn btn-outline-success btn-lg" for="whatsappCheck">
-            <i class="bi bi-whatsapp me-2"></i> WhatsApp
-        </label>
-    </div>
+
 </div>
 
                         <small class="form-text text-muted">Selecione uma ou mais plataformas</small>

@@ -1,0 +1,280 @@
+Date: 16/12/2024
+Time: 2:42
+Phone Number: +258848198115
+Message: Para enviar uma mensagem a um grupo no WhatsApp usando pywhatkit, você precisa usar o link de convite do grupo ou o número do grupo. No entanto, a biblioteca pywhatkit não oferece suporte direto para envio de mensagens para grupos com o nome do grupo.Uma abordagem possível é criar um link de convite do grupo e usá-lo para enviar a mensagem. Caso contrário, para enviar a mensagem para um grupo via API, seria necessário usar uma abordagem mais avançada, como a API do WhatsApp Business ou outras bibliotecas de automação como selenium para interagir diretamente com a interface do WhatsApp Web.Se você ainda quiser enviar a mensagem para um grupo, você pode fazer isso da seguinte maneira, usando o link de convite do grupo:
+--------------------
+Date: 16/12/2024
+Time: 2:43
+Phone Number: +258848198115
+Message: cledner
+--------------------
+Date: 16/12/2024
+Time: 2:46
+Phone Number: +258848198115
+Message: cledner
+--------------------
+Date: 16/12/2024
+Time: 2:47
+Phone Number: +258848198115
+Message: clednervyikopl
+--------------------
+Date: 16/12/2024
+Time: 2:47
+Phone Number: +258848198115
+Message: clednervyikopl
+--------------------
+Date: 16/12/2024
+Time: 2:47
+Phone Number: +258848198115
+Message: clednervyikopl
+--------------------
+Date: 16/12/2024
+Time: 2:48
+Phone Number: +258848198115
+Message: clednervyikopl
+--------------------
+Date: 16/12/2024
+Time: 2:48
+Phone Number: +258848198115
+Message: clednervyikopl
+--------------------
+Date: 16/12/2024
+Time: 2:49
+Phone Number: +258848198115
+Message: eee
+--------------------
+Date: 16/12/2024
+Time: 2:50
+Phone Number: +258848198115
+Message: eee
+--------------------
+Date: 16/12/2024
+Time: 2:58
+Phone Number: "+258848198115"
+Message: Electro Zone LdaFacebookhttps://www.facebook.com › ... › Loja de iluminaçãoelectro zone de www.facebook.comElectro Zone Lda, Beira. 4.602 curtidas · 127 estiveram aqui. Electro Zone Lda, Especializada na venda de soluções de matérial eléctrico, iluminação,...
+--------------------
+Date: 16/12/2024
+Time: 2:58
+Phone Number: "+258875000101"
+Message: Electro Zone LdaFacebookhttps://www.facebook.com › ... › Loja de iluminaçãoelectro zone de www.facebook.comElectro Zone Lda, Beira. 4.602 curtidas · 127 estiveram aqui. Electro Zone Lda, Especializada na venda de soluções de matérial eléctrico, iluminação,...
+--------------------
+Date: 16/12/2024
+Time: 2:58
+Phone Number: "+258852151617"
+Message: Electro Zone LdaFacebookhttps://www.facebook.com › ... › Loja de iluminaçãoelectro zone de www.facebook.comElectro Zone Lda, Beira. 4.602 curtidas · 127 estiveram aqui. Electro Zone Lda, Especializada na venda de soluções de matérial eléctrico, iluminação,...
+--------------------
+Date: 16/12/2024
+Time: 3:0
+Phone Number: "+258848198115"
+Message: Electro Zone LdaFacebookhttps://www.facebook.com › ... › Loja de iluminaçãoelectro zone de www.facebook.comElectro Zone Lda, Beira. 4.602 curtidas · 127 estiveram aqui. Electro Zone Lda, Especializada na venda de soluções de matérial eléctrico, iluminação,...
+--------------------
+Date: 16/12/2024
+Time: 3:0
+Phone Number: "+258875000101"
+Message: Electro Zone LdaFacebookhttps://www.facebook.com › ... › Loja de iluminaçãoelectro zone de www.facebook.comElectro Zone Lda, Beira. 4.602 curtidas · 127 estiveram aqui. Electro Zone Lda, Especializada na venda de soluções de matérial eléctrico, iluminação,...
+--------------------
+Date: 16/12/2024
+Time: 3:0
+Phone Number: "+258852151617"
+Message: Electro Zone LdaFacebookhttps://www.facebook.com › ... › Loja de iluminaçãoelectro zone de www.facebook.comElectro Zone Lda, Beira. 4.602 curtidas · 127 estiveram aqui. Electro Zone Lda, Especializada na venda de soluções de matérial eléctrico, iluminação,...
+--------------------
+Date: 16/12/2024
+Time: 3:2
+Phone Number: "+258848198115"
+Message: Electro Zone LdaFacebookhttps://www.facebook.com › ... › Loja de iluminaçãoelectro zone de www.facebook.comElectro Zone Lda, Beira. 4.602 curtidas · 127 estiveram aqui. Electro Zone Lda, Especializada na venda de soluções de matérial eléctrico, iluminação,...
+--------------------
+Date: 16/12/2024
+Time: 3:2
+Phone Number: "+258875000101"
+Message: Electro Zone LdaFacebookhttps://www.facebook.com › ... › Loja de iluminaçãoelectro zone de www.facebook.comElectro Zone Lda, Beira. 4.602 curtidas · 127 estiveram aqui. Electro Zone Lda, Especializada na venda de soluções de matérial eléctrico, iluminação,...
+--------------------
+Date: 16/12/2024
+Time: 3:2
+Phone Number: "+258852151617"
+Message: Electro Zone LdaFacebookhttps://www.facebook.com › ... › Loja de iluminaçãoelectro zone de www.facebook.comElectro Zone Lda, Beira. 4.602 curtidas · 127 estiveram aqui. Electro Zone Lda, Especializada na venda de soluções de matérial eléctrico, iluminação,...
+--------------------
+Date: 16/12/2024
+Time: 3:5
+Phone Number: "+258848198115"
+Message: https://web.facebook.com/share/p/CGjTzDSVtKpuqVkm/
+--------------------
+Date: 16/12/2024
+Time: 3:5
+Phone Number: "+258875000101"
+Message: https://web.facebook.com/share/p/CGjTzDSVtKpuqVkm/
+--------------------
+Date: 16/12/2024
+Time: 3:5
+Phone Number: "+258852151617"
+Message: https://web.facebook.com/share/p/CGjTzDSVtKpuqVkm/
+--------------------
+Date: 16/12/2024
+Time: 3:42
+Phone Number: "+258848198115"
+Message: jj
+--------------------
+Date: 16/12/2024
+Time: 3:42
+Phone Number: "+258875000101"
+Message: jj
+--------------------
+Date: 16/12/2024
+Time: 3:43
+Phone Number: "+258852151617"
+Message: jj
+--------------------
+Date: 16/12/2024
+Time: 3:50
+Phone Number: "+258848198115"
+Message: Bom DIa
+--------------------
+Date: 16/12/2024
+Time: 3:50
+Phone Number: "+258875000101"
+Message: Bom DIa
+--------------------
+Date: 16/12/2024
+Time: 3:51
+Phone Number: "+258852151617"
+Message: Bom DIa
+--------------------
+Date: 16/12/2024
+Time: 4:0
+Phone Number: "+258848198115"
+Message: Bom DIa
+--------------------
+Date: 16/12/2024
+Time: 4:0
+Phone Number: "+258875000101"
+Message: Bom DIa
+--------------------
+Date: 16/12/2024
+Time: 4:1
+Phone Number: "+258852151617"
+Message: Bom DIa
+--------------------
+Date: 16/12/2024
+Time: 4:8
+Phone Number: "+258848198115"
+Message: Estas desanimada porque?
+--------------------
+Date: 16/12/2024
+Time: 4:8
+Phone Number: "+258875000101"
+Message: Estas desanimada porque?
+--------------------
+Date: 16/12/2024
+Time: 4:9
+Phone Number: "+258852151617"
+Message: Estas desanimada porque?
+--------------------
+Date: 16/12/2024
+Time: 4:9
+Phone Number: "+258848198115"
+Message: Estas desanimada porque?
+--------------------
+Date: 16/12/2024
+Time: 4:9
+Phone Number: "+258875000101"
+Message: Estas desanimada porque?
+--------------------
+Date: 16/12/2024
+Time: 4:10
+Phone Number: "+258852151617"
+Message: Estas desanimada porque?
+--------------------
+Date: 16/12/2024
+Time: 4:10
+Phone Number: "+258848198115"
+Message: Estas desanimada porque?
+--------------------
+Date: 16/12/2024
+Time: 4:10
+Phone Number: "+258875000101"
+Message: Estas desanimada porque?
+--------------------
+Date: 16/12/2024
+Time: 4:11
+Phone Number: "+258852151617"
+Message: Estas desanimada porque?
+--------------------
+Date: 16/12/2024
+Time: 4:11
+Phone Number: "+258848198115"
+Message: Estas desanimada porque?
+--------------------
+Date: 16/12/2024
+Time: 4:11
+Phone Number: "+258875000101"
+Message: Estas desanimada porque?
+--------------------
+Date: 16/12/2024
+Time: 4:11
+Phone Number: "+258852151617"
+Message: Estas desanimada porque?
+--------------------
+Date: 16/12/2024
+Time: 4:12
+Phone Number: "+258848198115"
+Message: Estas desanimada porque?
+--------------------
+Date: 16/12/2024
+Time: 4:12
+Phone Number: "+258875000101"
+Message: Estas desanimada porque?
+--------------------
+Date: 16/12/2024
+Time: 4:12
+Phone Number: "+258852151617"
+Message: Estas desanimada porque?
+--------------------
+Date: 16/12/2024
+Time: 4:12
+Phone Number: "+258848198115"
+Message: Estas desanimada porque?
+--------------------
+Date: 16/12/2024
+Time: 4:13
+Phone Number: "+258875000101"
+Message: Estas desanimada porque?
+--------------------
+Date: 16/12/2024
+Time: 4:13
+Phone Number: "+258852151617"
+Message: Estas desanimada porque?
+--------------------
+Date: 16/12/2024
+Time: 4:13
+Phone Number: "+258848198115"
+Message: Estas desanimada porque?
+--------------------
+Date: 16/12/2024
+Time: 4:14
+Phone Number: "+258875000101"
+Message: Estas desanimada porque?
+--------------------
+Date: 16/12/2024
+Time: 4:14
+Phone Number: "+258852151617"
+Message: Estas desanimada porque?
+--------------------
+Date: 16/12/2024
+Time: 4:14
+Phone Number: "+258848198115"
+Message: Estas desanimada porque?
+--------------------
+Date: 16/12/2024
+Time: 5:17
+Phone Number: "+258848198115"
+Message: bbbbbbb
+--------------------
+Date: 16/12/2024
+Time: 5:17
+Phone Number: "+258875000101"
+Message: bbbbbbb
+--------------------
+Date: 16/12/2024
+Time: 5:17
+Phone Number: "+258852151617"
+Message: bbbbbbb
+--------------------

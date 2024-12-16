@@ -780,6 +780,22 @@ document.getElementById('confirmDeleteButton').addEventListener('click', () => {
 </div>
 
 <script>
+    document.addEventListener('DOMContentLoaded', function () {
+    // Remover backdrops residuais ao fechar o modal
+    document.getElementById('commentModal').addEventListener('hidden.bs.modal', function () {
+        // Remover possíveis backdrops que ficaram no DOM
+        const backdrops = document.querySelectorAll('.modal-backdrop');
+        backdrops.forEach(backdrop => backdrop.remove());
+
+        // Restaurar o overflow do body
+        document.body.classList.remove('modal-open');
+        document.body.style.overflow = '';
+    });
+});
+
+</script>
+
+<script>
    // JavaScript para melhorar a UX de comentários
     let currentCommentId = '';
     let currentPage = 1;
@@ -941,7 +957,7 @@ document.getElementById('confirmDeleteButton').addEventListener('click', () => {
                     from: 'Você',
                     message,
                     created_time: new Date().toISOString(),
-                    avatar: '/static/default-avatar.png'
+                    avatar: '/static/default-avatar.jpg'
                 };
 
                 const replyList = document.getElementById(`replyList-${currentCommentId}`);
