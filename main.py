@@ -3191,6 +3191,10 @@ def cled():
 
 import pywhatkit as kit
 
+import os
+os.environ["DISPLAY"] = ":0"
+
+
 @app.route('/luis')
 def luis():
     return render_template('posts.html')
